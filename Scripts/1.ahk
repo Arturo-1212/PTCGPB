@@ -10,7 +10,7 @@ SetBatchLines, -1
 SetTitleMatchMode, 3
 CoordMode, Pixel, Screen
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, discordWebhookURL, discordUserId
 
 	
 	adbPath := A_ScriptDir . "\adb\platform-tools\adb.exe"  ; Example path, adjust if necessary
@@ -31,6 +31,8 @@ global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipT
 	IniRead, SelectedMonitorIndex, %A_ScriptDir%\..\Settings.ini, UserSettings, SelectedMonitorIndex, 1:
 	IniRead, swipeSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, swipeSpeed, 600
 	IniRead, godPack, %A_ScriptDir%\..\Settings.ini, UserSettings, godPack, 1
+    IniRead, discordWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, discordWebhookURL, ""
+    IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
 	
 	
 	if(!adbPort) {
@@ -1083,6 +1085,22 @@ LogToFile(message, logFile := "") {
     FileAppend, % "[" readableTime "] " message "`n", %logFile%
 }
 
+LogToDiscord(message, ping := false) {
+	if (discordWebhookURL != "") {
+		if (ping && discordUserId != "") {
+			data := "{""content"": ""<@" discordUserId "> " message """}"
+		} else {
+			data := "{""content"": """ message """}"
+		}
+
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+		whr.Open("POST", discordWebhookURL, false)
+		whr.SetRequestHeader("Content-Type", "application/json")
+		whr.Send(data)
+	}
+}
+
+
 CreateStatusMessage(Message, GuiName := 50, X := 0, Y := 60) {
 	global scriptName, winTitle, statusText, SelectedMonitorIndex
 	MaxRetries := 10
@@ -1131,6 +1149,7 @@ checkBorder() {
 		else {
 			CreateStatusMessage("God Pack Found!!! In instance: " . scriptName)
 			godPackLog = GPlog.txt
+			LogToDiscord("Congrats! God pack found in instance: " . scriptName, true)
 			LogToFile("Congrats! God pack found in instance: " . scriptName, godPackLog)
 			Screenshot()
 			killGodPackInstance()

@@ -23,6 +23,8 @@ InitializeJsonFile() ; Create or open the JSON file
     IniRead, defaultLanguage, Settings.ini, UserSettings, defaultLanguage, English
     IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex, 1
     IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 600
+    IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
+    IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
 
 ; Main GUI setup
 ; Add the link text at the bottom of the GUI
@@ -229,6 +231,8 @@ IniWrite, %setSpeed%, Settings.ini, UserSettings, setSpeed
 IniWrite, %defaultLanguage%, Settings.ini, UserSettings, defaultLanguage
 IniWrite, %SelectedMonitorIndex%, Settings.ini, UserSettings, SelectedMonitorIndex
 IniWrite, %swipeSpeed%, Settings.ini, UserSettings, swipeSpeed
+IniWrite, %discordWebhookURL%, Settings.ini, UserSettings, discordWebhookURL
+IniWrite, %discordUserId%, Settings.ini, UserSettings, discordUserId
 
 ; Loop to process each instance
 Loop, %Instances%
