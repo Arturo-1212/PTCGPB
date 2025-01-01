@@ -223,7 +223,7 @@ KeepSync(77, 144, 169, 175, , "Country", 143, 370) ;select month and year and cl
 
 adbClick(80, 400)
 Sleep, %Delay%
-adbClick(80, 400)
+adbClick(80, 290)
 Sleep, %Delay%
 failSafe := A_TickCount
 failSafeTime := 0
