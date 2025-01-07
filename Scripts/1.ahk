@@ -11,6 +11,9 @@ SetTitleMatchMode, 3
 CoordMode, Pixel, Screen
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP
+global telegramToken := ""  ; write the telegram bot token value inside the quotes
+global telegramChatID := ""  ; write the telegram chat id value inside the quotes
+global telegramTopicID := ""  ; write the telegram topic id value inside the quotes or leave blank
 
 	
 	adbPath := A_ScriptDir . "\adb\platform-tools\adb.exe"  ; Example path, adjust if necessary
@@ -1272,6 +1275,7 @@ checkBorder() {
 				godPackLog = GPlog.txt
 				LogToFile(logMessage, godPackLog)
 				LogToDiscord(logMessage, Screenshot(), discordUserId)
+				LogToTelegram(logMessage, Screenshot())
 				;killGodPackInstance()
 			}
 			else {
@@ -1280,6 +1284,7 @@ checkBorder() {
 				godPackLog = GPlog.txt
 				LogToFile(logMessage, godPackLog)
 				LogToDiscord(logMessage, Screenshot(), discordUserId)
+				LogToTelegram(logMessage, Screenshot())
 				killGodPackInstance()
 			}
 		}
@@ -1395,6 +1400,32 @@ LogToDiscord(message, screenshotFile := "", ping := false) {
 			}
 			sleep, 250
 		}
+    }
+}
+
+LogToTelegram(message, screenshotFile := "") {
+	global telegramToken, telegramChatID, telegramTopicID
+	if (telegramToken != "" && telegramChatID != "") {
+		; Prepare the message data
+		url := "https://api.telegram.org/bot" . telegramToken
+		params := "?chat_id=" . telegramChatID . "&message_thread_id=" . telegramTopicID . "&text=" . message . scriptName
+		
+
+		; Create the HTTP request object
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+		whr.Open("GET", url . "/sendMessage" . params, false)
+		whr.Send()
+
+		; If an image file is provided, send it
+		if (screenshotFile != "") {
+			; Check if the file exists
+			if (FileExist(screenshotFile)) {
+				; Send the image using curl
+				image_url := url . "/sendPhoto"
+				curlCommand := "curl -F ""photo=@" . screenshotFile . """ -F ""chat_id=" . telegramChatID . """ -F ""message_thread_id=" . telegramTopicID . """ " . image_url
+				RunWait, %curlCommand%,, Hide
+            }
+        }
     }
 }
 	; Pause Script
