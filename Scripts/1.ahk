@@ -10,10 +10,7 @@ SetBatchLines, -1
 SetTitleMatchMode, 3
 CoordMode, Pixel, Screen
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP
-global telegramToken := ""  ; write the telegram bot token value inside the quotes
-global telegramChatID := ""  ; write the telegram chat id value inside the quotes
-global telegramTopicID := ""  ; write the telegram topic id value inside the quotes or leave blank
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, telegramToken, telegramChatID, telegramTopicID
 
 	
 	adbPath := A_ScriptDir . "\adb\platform-tools\adb.exe"  ; Example path, adjust if necessary
@@ -38,6 +35,9 @@ global telegramTopicID := ""  ; write the telegram topic id value inside the quo
 	IniRead, godPack, %A_ScriptDir%\..\Settings.ini, UserSettings, godPack, 1
 	IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
     IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
+    IniRead, telegramToken, Settings.ini, UserSettings, telegramToken, ""
+    IniRead, telegramChatID, Settings.ini, UserSettings, telegramChatID, ""
+    IniRead, telegramTopicID, Settings.ini, UserSettings, telegramTopicID, ""
 	
 	
 	if(!adbPort) {

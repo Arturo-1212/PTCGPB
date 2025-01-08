@@ -16,6 +16,9 @@ InitializeJsonFile() ; Create or open the JSON file
     IniRead, folderPath, Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
     IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
     IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
+    IniRead, telegramToken, Settings.ini, UserSettings, telegramToken, ""
+    IniRead, telegramChatID, Settings.ini, UserSettings, telegramChatID, ""
+    IniRead, telegramTopicID, Settings.ini, UserSettings, telegramTopicID, ""
     IniRead, changeDate, Settings.ini, UserSettings, ChangeDate, 0100
     IniRead, Columns, Settings.ini, UserSettings, Columns, 5
     IniRead, openPack, Settings.ini, UserSettings, openPack, Mew
