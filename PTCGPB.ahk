@@ -94,7 +94,7 @@ if (defaultLanguage = "English") {
 } else if (defaultLanguage = "Japanese100") {
     defaultLang := 9
     scaleParam := 287
-} else if (defaultLanguage = "Japanese100") {
+} else if (defaultLanguage = "Chinese100") {
     defaultLang := 10
     scaleParam := 287
 }
