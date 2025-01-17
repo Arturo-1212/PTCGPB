@@ -10,7 +10,7 @@ SetBatchLines, -1
 SetTitleMatchMode, 3
 CoordMode, Pixel, Screen
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs
 
 	deleteAccount := false
 	scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -168,41 +168,6 @@ global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipT
 		deleteXML := false
 
 	rerollTime := A_TickCount	
-	
-	MaxRetries := 10
-	RetryCount := 0
-	Loop {
-		try {
-			if (!adbShell) {
-				adbShell := ComObjCreate("WScript.Shell").Exec(adbPath . " -s 127.0.0.1:" . adbPort . " shell")
-				; Extract the Process ID
-				processID := adbShell.ProcessID
-
-				; Wait for the console window to open using the process ID
-				WinWait, ahk_pid %processID%
-
-				; Minimize the window using the process ID
-				WinMinimize, ahk_pid %processID%
-				
-				adbShell.StdIn.WriteLine("su")
-			}
-			else if (adbShell.Status != 0) {
-				Sleep, 1000
-			}
-			else {
-				Sleep, 1000
-				break
-			}
-		}
-		catch {
-			RetryCount++
-			if(RetryCount > MaxRetries) {
-				CreateStatusMessage("Failed to connect to shell")
-				Pause
-			}
-		}
-		Sleep, 1000
-	}
 	
 	restartGameInstance("Initializing bot...", false)
 	
@@ -448,7 +413,7 @@ Loop {
 	Sleep, %Delay%
 	length := StrLen(Name) ; in case it lags and misses inputting name
 	Loop %length% {
-		adbShell.StdIn.WriteLine("input keyevent 67")	
+		RunADBShellCommand("input keyevent 67")
 		Sleep, 10
 	}
 	failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1224,14 +1189,13 @@ killGodPackInstance(){
 }
 
 restartGameInstance(reason, RL := true){
-	global Delay, scriptName, adbShell, adbPath, adbPort
-	initializeAdbShell()
+	global Delay, scriptName, adbPath, adbPort
 	CreateStatusMessage("Restarting game reason: " reason)
 	
-	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
-	adbShell.StdIn.WriteLine("rm /data/data/jp.pokemon.pokemontcgp/shared_prefs/deviceAccount:.xml") ; delete account data
-	;adbShell.StdIn.WriteLine("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
-	adbShell.StdIn.WriteLine("am start -n jp.pokemon.pokemontcgp/com.unity3d.player.UnityPlayerActivity")
+	RunADBShellCommand("am force-stop jp.pokemon.pokemontcgp")
+	RunADBShellCommand("rm /data/data/jp.pokemon.pokemontcgp/shared_prefs/deviceAccount:.xml") ; delete account data
+	;RunADBShellCommand("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
+	RunADBShellCommand("am start -n jp.pokemon.pokemontcgp/com.unity3d.player.UnityPlayerActivity")
 
 	Sleep, 3000
 	if(RL) {
@@ -1371,15 +1335,14 @@ checkBorder(wonderpick := true) {
 }
 
 saveAccount(file := "Valid") {
-	global adbShell, adbPath, adbPort
-	initializeAdbShell()
+	global adbPath, adbPort
 	
 	saveDir := A_ScriptDir "\..\Accounts\" . A_Now . "_" . winTitle . "_" . file . "_" . packs . "_packs.xml"
 	count := 0
 	Loop {
 		CreateStatusMessage("Attempting to save account XML...")
 	
-		adbShell.StdIn.WriteLine("cp /data/data/jp.pokemon.pokemontcgp/shared_prefs/deviceAccount:.xml /sdcard/deviceAccount.xml")
+		RunADBShellCommand("cp /data/data/jp.pokemon.pokemontcgp/shared_prefs/deviceAccount:.xml /sdcard/deviceAccount.xml")
 		
 		Sleep, 500
 		
@@ -1387,7 +1350,7 @@ saveAccount(file := "Valid") {
 		
 		Sleep, 500
 		
-		adbShell.StdIn.WriteLine("rm /sdcard/deviceAccount.xml")
+		RunADBShellCommand("rm /sdcard/deviceAccount.xml")
 		
 		Sleep, 500
 		
@@ -1405,11 +1368,10 @@ saveAccount(file := "Valid") {
 }
 
 adbClick(X, Y) {
-	global adbShell, setSpeed, adbPath, adbPort
-	initializeAdbShell()
+	global setSpeed, adbPath, adbPort
 	X := Round(X / 277 * 540)
-    Y := Round((Y - 44) / 489 * 960) 
-	adbShell.StdIn.WriteLine("input tap " X " " Y)
+    Y := Round((Y - 44) / 489 * 960)
+	RunADBShellCommand("input tap " . X . " " . Y)
 }
 
 ControlClick(X, Y) {
@@ -1418,22 +1380,19 @@ ControlClick(X, Y) {
 }
 
 adbName() {
-	global Name, adbShell, adbPath, adbPort
-	initializeAdbShell()
-	adbShell.StdIn.WriteLine("input text " Name )
+	global Name, adbPath, adbPort
+	RunADBShellCommand("input text " . Name)
 }
 
 adbSwipeUp() {
-	global adbShell, adbPath, adbPort
-	initializeAdbShell()
-	adbShell.StdIn.WriteLine("input swipe 309 816 309 355 60") 
-	;adbShell.StdIn.WriteLine("input swipe 309 816 309 555 30")	
+	global adbPath, adbPort
+	RunADBShellCommand("input swipe 309 816 309 355 60")
+	;RunADBShellCommand("input swipe 309 816 309 555 30")
 	Sleep, 150
 }
 
 adbSwipe() {
-	global adbShell, setSpeed, swipeSpeed, adbPath, adbPort
-	initializeAdbShell()
+	global setSpeed, swipeSpeed, adbPath, adbPort
 	X1 := 35
 	Y1 := 327
 	X2 := 267
@@ -1443,24 +1402,24 @@ adbSwipe() {
 	X2 := Round(X2 / 44 * 535)
     Y2 := Round((Y2 - 44) / 489 * 960)
 	if(setSpeed = 1) {
-		adbShell.StdIn.WriteLine("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
+		RunADBShellCommand("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
 		sleepDuration := swipeSpeed * 1.2
 		Sleep, %sleepDuration%
 	}
 	else if(setSpeed = 2) {
-		adbShell.StdIn.WriteLine("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
+		RunADBShellCommand("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
 		sleepDuration := swipeSpeed * 1.2
 		Sleep, %sleepDuration%
 	} 
 	else {
-		adbShell.StdIn.WriteLine("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
+		RunADBShellCommand("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
 		sleepDuration := swipeSpeed * 1.2
 		Sleep, %sleepDuration%
 	}
 }
 
 Screenshot(filename := "Valid") {
-	global adbShell, adbPath, packs
+	global adbPath, packs
 	SetWorkingDir %A_ScriptDir%  ; Ensures the working directory is the script's directory
 
 	; Define folder and file paths
@@ -1714,44 +1673,6 @@ bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
     Gui, BoundingBox:Destroy
 }
 
-; Function to initialize ADB Shell
-initializeAdbShell() {
-	global adbShell, adbPath, adbPort
-	RetryCount := 0
-	MaxRetries := 10
-	Loop {
-		try {
-			if (!adbShell) {
-				adbShell := ComObjCreate("WScript.Shell").Exec(adbPath . " -s 127.0.0.1:" . adbPort . " shell")
-				; Extract the Process ID
-				processID := adbShell.ProcessID
-
-				; Wait for the console window to open using the process ID
-				WinWait, ahk_pid %processID%
-
-				; Minimize the window using the process ID
-				WinMinimize, ahk_pid %processID%
-				
-				adbShell.StdIn.WriteLine("su")
-			}
-			else if (adbShell.Status != 0) {
-				Sleep, 1000
-			}
-			else {
-				break
-			}
-		}
-		catch {
-			RetryCount++
-			if(RetryCount > MaxRetries) {
-				CreateStatusMessage("Failed to connect to shell")
-				Pause
-			}
-		}
-		Sleep, 1000
-	}
-}
-
 GetNeedle(Path) {
 	static NeedleBitmaps := Object()
 	if (NeedleBitmaps.HasKey(Path)) {
@@ -1761,4 +1682,10 @@ GetNeedle(Path) {
 		NeedleBitmaps[Path] := pNeedle
 		return pNeedle
 	}
+}
+
+RunADBShellCommand(ADBCommand) {
+    global adbPort
+    fullADBCommand := Format("{} /c adb -s 127.0.0.1:{} shell su -c '{}'", ComSpec, adbPort, ADBCommand)
+    RunWait, %fullADBCommand%, , Hide
 }
