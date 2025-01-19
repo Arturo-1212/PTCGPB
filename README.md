@@ -138,6 +138,7 @@ __It doesn't do anything/Stuck Arranging windows__
 - Make sure you named your instance just the number "1", "2", "3", etc. and not "MuMu Player 1", "MuMu Player 2", etc.
 - Make sure you don't have other instances named the same even if they're not running.
 - The very first mumu instance in the list with the lock can't be used.
+- adb server could be bugged. Open a new terminal in C:\Program Files\Netease\MuMuPlayerGlobal-12.0\shell (Or wherever your MuMu is installed) and run the command adb devices. If you have yourr instances running and some are appearing offline or you have more devices than instances, run "adb kill-server" and then "adb start-server". Close all AHK scripts and run PTCGPB.ahk script again
 
 __Clicking top right at "Country or Menu"__
 - MuMu's emulator resolution must be 540x960 with 220dpi
