@@ -7,7 +7,7 @@ If you're having issues check the common issues section after the guide.
 If you still need help feel free to join our discord and someone will be able to help you there! We also have set-up guides in Chinese, German, French, Italian, Japanese, Korean, Portuguese, and Spanish posted there!
 https://discord.gg/C9Nyf7P4sT
 
-# **__Arturo's Pokemon Trading Card Game Pocket Bot v5.0.1__**
+# **__Arturo's Pokemon Trading Card Game Pocket Bot v5.0.2__**
 *Special thanks to all [contributors](https://github.com/Arturo-1212/PTCGPB/graphs/contributors)! Thanks to everyone else who has helped test or has contributed their suggestions to make the bot better!*
 
 **__What does this do?__**
