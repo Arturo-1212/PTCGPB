@@ -39,7 +39,7 @@ global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipT
 	IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
 	IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Clicks
 	IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
-	IniRead, ADBKeyboard, %A_ScriptDir%\..\Settings.ini, UserSettings, isADBKeyboard, 0
+	IniRead, isADBKeyboard, %A_ScriptDir%\..\Settings.ini, UserSettings, ADBKeyboard, 0
 	
 	adbPort := findAdbPorts(folderPath)
 	
@@ -1424,14 +1424,12 @@ getUTF8(__Text) {
 adbName(name) {
 	global adbShell, adbPath, adbPort, isADBKeyboard
 	initializeAdbShell()
-	if(isADBKeyboard) {
-	adbShell.StdIn.WriteLine("ime set com.android.adbkeyboard/.AdbIME")
-	encodedText := LC_Base64_EncodeText(getUTF8(name))
-    command := "am broadcast -a ADB_INPUT_B64 --es msg " . Chr(34) . encodedText . Chr(34)
-    adbShell.StdIn.WriteLine(command)
-} else {
-	adbShell.StdIn.WriteLine("input text " . name )
-}
+	if(isADBKeyboard == 1) {
+		adbShell.StdIn.WriteLine("ime set com.android.adbkeyboard/.AdbIME")
+		encodedText := LC_Base64_EncodeText(name)
+    	command := "am broadcast -a ADB_INPUT_B64 --es msg " . Chr(34) . encodedText . Chr(34)
+    	adbShell.StdIn.WriteLine(command)
+	} else adbShell.StdIn.WriteLine("input text " . name )
     Sleep, %Delay%
 }
 
