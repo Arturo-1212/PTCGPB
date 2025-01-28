@@ -1,5 +1,6 @@
 #Include %A_ScriptDir%\Include\Gdip_All.ahk
 #Include %A_ScriptDir%\Include\Gdip_Imagesearch.ahk
+#Include %A_ScriptDir%\Include\libcrypt.ahk
 #SingleInstance on
 ;SetKeyDelay, -1, -1
 SetMouseDelay, -1
@@ -14,7 +15,7 @@ CoordMode, Pixel, Screen
 DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, isADBKeyboard
 
 	deleteAccount := false
 	scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -38,6 +39,7 @@ global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipT
 	IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
 	IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Clicks
 	IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
+	IniRead, ADBKeyboard, %A_ScriptDir%\..\Settings.ini, UserSettings, isADBKeyboard, 0
 	
 	adbPort := findAdbPorts(folderPath)
 	
@@ -105,19 +107,22 @@ global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipT
 		CreateStatusMessage("Trying to create button gui...")
 	}
 		
-	if (!openPack)
-		openPack = 1
-	else if (openPack = "Mewtwo")
-		openPack = 1
-	else if (openPack = "Pikachu")
-		openPack = 2
-	else if (openPack = "Charizard")
-		openPack = 3
-	else if (openPack = "Mew")
-		openPack = 4
-	else if (openPack = "Random") {
+	if (!openPack) {
 		Random, rand, 1, 4
-		openPack = %rand%
+		packOpen = %rand%
+		openPack = "Random"
+	}
+	else if (openPack == "Mewtwo")
+		packOpen = 1
+	else if (openPack == "Pikachu")
+		packOpen = 2
+	else if (openPack == "Charizard")
+		packOpen = 3
+	else if (openPack == "Mew")
+		packOpen = 4
+	else if (openPack == "Random") {
+		Random, rand, 1, 4
+		packOpen = %rand%
 	}
 	
 	if (!godPack)
@@ -382,7 +387,7 @@ failSafeTime := 0
 	}
 KeepSync(190, 241, 225, 270, , "Name", 189, 438) ;wait for name input screen
 
-KeepSync(0, 476, 40, 502, , "OK", 139, 257) ;wait for name input screen
+KeepSync(0, 461, 40, 502, , "OK", 139, 257) ;wait for name input screen
 
 failSafe := A_TickCount
 failSafeTime := 0
@@ -650,15 +655,15 @@ if(deleteAccount) {
 	restartGameInstance("GP test mode exited, restarting...") ; restarts to avoid clogging up the tested account friend list
 }
 else {
-	if(openPack = 4) { ; MEW
+	if(packOpen == 4) { ; MEW
 		KeepSync(233, 400, 264, 428, , "Points", 80, 196) ;Mew	
 		KeepSync(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
-	else if(openPack = 1) { ;MEWTWO
+	else if(packOpen == 1) { ;MEWTWO
 		KeepSync(233, 400, 264, 428, , "Points", 200, 196) ;Genetic apex
 		KeepSync(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
-	else if(openPack = 2) { ;pikachu
+	else if(packOpen == 2) { ;pikachu
 		KeepSync(233, 400, 264, 428, , "Points", 200, 196) ;Genetic apex
 		Sleep, %Delay%
 		Sleep, %Delay%
@@ -670,7 +675,7 @@ else {
 		Sleep, %Delay%
 		KeepSync(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
-	else if(openPack = 3) { ;charizard
+	else if(packOpen == 3) { ;charizard
 		
 		KeepSync(233, 400, 264, 428, , "Points", 200, 196) ;Genetic apex
 		Sleep, %Delay%
@@ -958,6 +963,12 @@ else {
 	sseconds := Mod(totalSeconds, 60) ; Remaining seconds within the minute
 	CreateStatusMessage("Avg: " . minutes . "m " . seconds . "s Runs: " . rerolls, 25, 0, 510)
 	LogToFile("Packs: " . packs . " Total time: " . mminutes . "m " . sseconds . "s Avg: " . minutes . "m " . seconds . "s Runs: " . rerolls)
+
+	if (openPack = "Random") {
+		Random, rand, 1, 4
+		packOpen = %rand%
+	}
+
 }
 }
 return
@@ -1303,11 +1314,8 @@ checkBorder() {
 					}
 				}
 				if(invalidGP) {
-					Condemn := ["Uh-oh!", "Oops!", "Not quite!", "Better luck next time!", "Yikes!", "That didn’t go as planned.", "Try again!", "Almost had it!", "Not your best effort.", "Keep practicing!", "Oh no!", "Close, but no cigar.", "You missed it!", "Needs work!", "Back to the drawing board!", "Whoops!", "That’s rough!", "Don’t give up!", "Ouch!", "Swing and a miss!", "Room for improvement!", "Could be better.", "Not this time.", "Try harder!", "Missed the mark.", "Keep at it!", "Bummer!", "That’s unfortunate.", "So close!", "Gotta do better!"]
-					Randmax := Condemn.Length()
-					Random, rand, 1, Randmax
-					Interjection := Condemn[rand]
-					logMessage := Interjection . " Invalid pack in instance: " . scriptName . " (" . packs . " packs) Backed up to the Accounts folder. Continuing..."
+					Interjection := RandomTxt("invalid.txt")
+					logMessage := Interjection . "`nAInvalid pack in instance: " . scriptName . " (" . packs . " packs) Backed up to the Accounts folder. Continuing..."
 					CreateStatusMessage(logMessage)
 					godPackLog = GPlog.txt
 					LogToFile(logMessage, godPackLog)
@@ -1319,16 +1327,12 @@ checkBorder() {
 					break
 				}
 				else {
-					Praise := ["Congrats!", "Congratulations!", "GG!", "Whoa!", "Praise Helix! ༼ つ ◕_◕ ༽つ", "Way to go!", "You did it!", "Awesome!", "Nice!", "Cool!", "You deserve it!", "Keep going!", "This one has to be live!", "No duds, no duds, no duds!", "Fantastic!", "Bravo!", "Excellent work!", "Impressive!", "Youre amazing!", "Well done!", "Youre crushing it!", "Keep up the great work!", "Youre unstoppable!", "Exceptional!", "You nailed it!", "Hats off to you!", "Sweet!", "Kudos!", "Phenomenal!", "Boom! Nailed it!", "Marvelous!", "Outstanding!", "Legendary!", "Youre a rock star!", "Unbelievable!", "Keep shining!", "Way to crush it!", "Youre on fire!", "Killing it!", "Top-notch!", "Superb!", "Epic!", "Cheers to you!", "Thats the spirit!", "Magnificent!", "Youre a natural!", "Gold star for you!", "You crushed it!", "Incredible!", "Shazam!", "Youre a genius!", "Top-tier effort!", "This is your moment!", "Powerful stuff!", "Wicked awesome!", "Props to you!", "Big win!", "Yesss!", "Champion vibes!", "Spectacular!"]
-
-					Randmax := Praise.Length()
-					Random, rand, 1, Randmax
-					Interjection := Praise[rand]
+					Interjection := RandomTxt("valid.txt")
 					
 					if(godPack < 3)
-						logMessage := Interjection . " God pack found in instance: " . scriptName . " (" . packs . " packs) Instance is stopping."
+						logMessage := Interjection . "`nAGod pack found in instance: " . scriptName . " (" . packs . " packs) Instance is stopping."
 					else if(godPack = 3)
-						logMessage := Interjection . " God Pack found in instance: " . scriptName . " (" . packs . " packs) Backed up to the Accounts folder. Continuing..."
+						logMessage := Interjection . "`nAGod Pack found in instance: " . scriptName . " (" . packs . " packs) Backed up to the Accounts folder. Continuing..."
 					CreateStatusMessage(logMessage)
 					godPackLog = GPlog.txt
 					LogToFile(logMessage, godPackLog)
@@ -1397,8 +1401,10 @@ ControlClick(X, Y) {
 	ControlClick, x%X% y%Y%, %winTitle%
 }
 
-RandomUsername() {
-    FileRead, content, %A_ScriptDir%\..\usernames.txt
+RandomTxt(txtpath) {
+	fullPath := A_ScriptDir . "\Text\" . txtpath
+	FileEncoding, UTF-8
+    FileRead, content, %fullPath%
 
     values := StrSplit(content, "`r`n") ; Use `n if the file uses Unix line endings
 
@@ -1409,10 +1415,24 @@ RandomUsername() {
     return values[randomIndex]
 }
 
+getUTF8(__Text) {
+	VarSetCapacity(utf8Text, StrPut(__Text, "UTF-8"))
+	StrPut(__Text, &utf8Text, "UTF-8")
+	return StrGet(&utf8Text, "UTF-8")
+}
+
 adbName(name) {
-	global adbShell, adbPath, adbPort
+	global adbShell, adbPath, adbPort, isADBKeyboard
 	initializeAdbShell()
+	if(isADBKeyboard) {
+	adbShell.StdIn.WriteLine("ime set com.android.adbkeyboard/.AdbIME")
+	encodedText := LC_Base64_EncodeText(getUTF8(name))
+    command := "am broadcast -a ADB_INPUT_B64 --es msg " . Chr(34) . encodedText . Chr(34)
+    adbShell.StdIn.WriteLine(command)
+} else {
 	adbShell.StdIn.WriteLine("input text " . name )
+}
+    Sleep, %Delay%
 }
 
 adbSwipeUp() {
@@ -1478,16 +1498,16 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 			try {
 				; Prepare the message data
 				if (ping && discordUserId != "") {
-					data := "{""content"": ""<@" discordUserId "> " message """}"
+					data := "content=<@" discordUserId "> " message
 				} else {
-					data := "{""content"": """ message """}"
+					data := "content=" message
 				}
 
 				; Create the HTTP request object
 				whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 				whr.Open("POST", discordWebhookURL, false)
-				whr.SetRequestHeader("Content-Type", "application/json")
-				whr.Send(data)
+				whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+				whr.Send(LC_UrlEncode(data))
 
 				; If an image file is provided, send it
 				if (screenshotFile != "") {
@@ -1875,7 +1895,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 GetPlayerName() {
 	global EnteredName
 	if (EnteredName = "")
-		return RandomUsername()
+		return RandomTxt("usernames.txt")
 
 	return EnteredName
 }
