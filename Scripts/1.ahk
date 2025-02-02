@@ -952,6 +952,8 @@ AddFriends() {
 					adbClick(232, 453)
 					if(CheckInstances(165, 250, 190, 275, , "Send", 0)) {
 						adbClick(193, 258)
+						Sendlevel 1
+						send, {F9}
 						break
 					}
 					if(CheckInstances(165, 240, 255, 270, , "Withdraw", 0))
@@ -985,6 +987,8 @@ AddFriends() {
 						}
 					}
 				}
+				Sendlevel 1
+				send, {F9}
 			}
 			KeepSync(120, 500, 155, 530, , "Social", 143, 518, 500)
 			KeepSync(20, 500, 55, 530, , "Home", 40, 516, 500)

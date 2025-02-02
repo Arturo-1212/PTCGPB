@@ -134,6 +134,11 @@ Loop {
 	}
 	Sleep, %Delay%
 	KeepSync(120, 500, 155, 530, , "Social", 143, 518, 1000, 30)
+	Loop {
+		Sleep, %Delay%
+		if(AddFriend > 0)
+			break
+	}
 	KeepSync(226, 100, 270, 135, , "Add", 38, 460, 500)
 	KeepSync(170, 450, 195, 480, , "Approve", 228, 464)
 	done := false
@@ -151,6 +156,8 @@ Loop {
 			}
 		}
 		if(done)
+			Sendlevel 1
+			AddFriend := 0
 			break
 	}
 }
@@ -719,6 +726,7 @@ from_window(ByRef image) {
 ~F5::Reload
 ~F6::Pause
 ~F7::ExitApp
+~F9::FriendAdded()
 
 bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
 	BoxWidth := X2-X1
