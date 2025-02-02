@@ -1330,6 +1330,52 @@ CreateStatusMessage(Message, GuiName := 50, X := 0, Y := 80) {
 	}
 }
 
+checkWishlist() {
+	global winTitle, discordUserId, Delay, username
+	Path = %A_ScriptDir%\%defaultLanguage%\Wishlist
+	searchVariation := 120
+	wishlistFound := false
+
+	if !FileExist(Path) {
+        CreateStatusMessage("No Wishlist folder.")
+        return false
+    }
+    ; check if wishlist folder is empty
+    containsFile := false
+    Loop, Files, %Path%\*.png, F 
+	{
+        containsFile := true
+        break
+    }
+	if (!containsFile)
+        return false
+
+	Sleep, 800 ; give time for cards to render
+
+	; go through all images in wishlist
+	Loop, Files, %Path%\*.png, F 
+	{
+		pBitmap := from_window(WinExist(winTitle))
+		pNeedle := GetNeedle(A_LoopFileFullPath)
+		; ImageSearch within the region
+		if (scaleParam = 277) { ; 125% scale
+			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 0, 0, 270, 500, searchVariation)
+		} else {
+			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 0, 0, 270, 500-6, searchVariation) ;???
+		}
+		Gdip_DisposeImage(pBitmap)
+		if (vRet >= 1) {
+			logMessage := username . "found a wishlisted card in instance: " . scriptName . " (" . packs . " packs)"
+			CreateStatusMessage(logMessage)
+			LogToDiscord(logMessage, Screenshot(), discordUserId, saveAccount())
+			wishlistFound := true
+			; Pause
+			break
+		}
+	}
+	return wishlistFound
+}
+
 checkBorder() {
 	global winTitle, discordUserId, skipInvalidGP, Delay, username
 	gpFound := false
