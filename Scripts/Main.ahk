@@ -286,7 +286,7 @@ KeepSync(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", clickx :
 			confirmed := true
 		} else {
 			ElapsedTime := (A_TickCount - StartSkipTime) // 1000
-			if(imageName = "Country")
+			if(imageName = "Country" || imageName = "Social")
 				FSTime := 180
 			else
 				FSTime := 45
