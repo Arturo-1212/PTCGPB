@@ -942,13 +942,14 @@ AddFriends() {
 			KeepSync(0, 475, 25, 495, , "OK2", 138, 454)
 			if(!friendIDs) {
 				friendIDs := [FriendID]
+			}
+			for index, value in friendIDs {
 				Sleep, %Delay%
 				Sleep, %Delay%
-				Sleep, %Delay%
-				adbInput(FriendID)
-				Sleep, %Delay%
+				adbInput(value)
 				Sleep, %Delay%
 				Sleep, %Delay%
+				count := 0
 				Loop {
 					adbClick(232, 453)
 					if(CheckInstances(165, 250, 190, 275, , "Send", 0)) {
@@ -962,41 +963,23 @@ AddFriends() {
 						break
 					}
 					Sleep, 750
-				}
-			}
-			else {
-				for index, value in friendIDs {
-					Sleep, %Delay%
-					Sleep, %Delay%
-					adbInput(value)
-					Sleep, %Delay%
-					Sleep, %Delay%
-					Loop {
-						adbClick(232, 453)
-						if(CheckInstances(165, 250, 190, 275, , "Send", 0)) {
-							adbClick(193, 258)
-							break
-						}
-						else if(CheckInstances(165, 240, 255, 270, , "Withdraw", 0)) {
-							break
-						}
-						else if(CheckInstances(165, 250, 190, 275, , "Accepted", 0)) {
-							break
-						}
-						Sleep, 750
-					}
-					if(index != friendIDs.maxIndex()) {
-						KeepSync(205, 430, 255, 475, , "Search2", 150, 50, 1500)
+					count++
+					if (count > 10) {
 						KeepSync(0, 475, 25, 495, , "OK2", 138, 454)
-						Loop {
-							CreateStatusMessage("Removing friend ID")
-							Loop 20 {
-								adbShell.StdIn.WriteLine("input keyevent 67")	
-								Sleep, 10
-							}
-							if(CheckInstances(15, 500, 68, 520, , "Erase", 0))
-								break
-						}
+						ClearInputField()
+						adbInput(value)
+						Sleep, %Delay% * 4
+						count = 0
+					}
+				}
+				if(index != friendIDs.maxIndex()) {
+					KeepSync(205, 430, 255, 475, , "Search2", 150, 50, 1500)
+					KeepSync(0, 475, 25, 495, , "OK2", 138, 454)
+					Loop {
+						CreateStatusMessage("Removing friend ID")
+						ClearInputField()
+						if(CheckInstances(15, 500, 68, 520, , "Erase", 0))
+							break
 					}
 				}
 			}
@@ -1006,6 +989,13 @@ AddFriends() {
 		CreateStatusMessage("Waiting for friends to accept request. `n" . count . "/" . waitTime . " seconds.")
 		sleep, 1000
 		count++
+	}
+}
+
+ClearInputField() {
+	Loop 20 {
+		adbShell.StdIn.WriteLine("input keyevent 67")	
+		Sleep, 10
 	}
 }
 
