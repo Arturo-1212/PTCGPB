@@ -2597,7 +2597,7 @@ HourglassOpening() {
 			adbClick(146, 494) ;146, 494
 		} else if(FindOrLoseImage(120, 70, 150, 100, , "Next2", 0, failSafeTime)) {
 			adbClick(146, 494) ;146, 494
-		} else if(FindOrLoseImage(20, 500, 55, 530, , "Home", 0, failSafeTime)) {
+		} else if(FindOrLoseImage(76, 505, 95, 523, , "Home2", 0, failSafeTime)) {
 			break
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
