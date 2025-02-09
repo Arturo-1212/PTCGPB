@@ -103,9 +103,15 @@ if (openPack = "Palkia") {
 	defaultPack := 2
 } else if (openPack = "Mew") {
 	defaultPack := 3
+} else if (openPack = "Mewtwo") {
+	defaultPack := 4
+} else if (openPack = "Charizard") {
+	defaultPack := 5
+} else if (openPack = "Pikachu") {
+	defaultPack := 6
 } 
 
-Gui, Add, DropDownList, x80 y166 w145 vopenPack choose%defaultPack% Center, Palkia|Dialga|Mew
+Gui, Add, DropDownList, x80 y166 w145 vopenPack choose%defaultPack% Center, Palkia|Dialga|Mew|Mewtwo|Charizard|Pikachu
 global scaleParam
 
 if (defaultLanguage = "Scale125") {

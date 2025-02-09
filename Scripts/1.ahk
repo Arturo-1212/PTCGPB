@@ -290,8 +290,56 @@ SelectPack(f := false) {
 		}
 		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
+	else if(openPack = "Mewtwo") { ;Mewtwo
+		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
+		if(f = true) {
+			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+		}
+		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
+		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
+		
+		FindImageAndClick(233, 400, 264, 428, , "Points", 90, 400) ;click on mewtwo until points appears
+		
+		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
+	}
+	else if(openPack = "Charizard") { ;Charizard
+		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
+		if(f = true) {
+			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+		}
+		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
+		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
+		
+		FindImageAndClick(233, 400, 264, 428, , "Points", 50, 400) ;click on charizard until points appears
+		
+		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
+	}
+	else if(openPack = "Pikachu") { ;Pikachu
+		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
+		if(f = true) {
+			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+		}
+		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
+		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
+		
+		FindImageAndClick(233, 400, 264, 428, , "Points", 130, 400) ;click on pikachu until points appears
+		
+		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
+	}
 	else if(openPack = "Palkia") { ;Palkia
-		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;Genetic apex
+		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
 		if(f = true) {
 			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
 			Delay(1)
@@ -302,7 +350,7 @@ SelectPack(f := false) {
 		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
 	else if(openPack = "Dialga") { ;Dialga
-		FindImageAndClick(233, 400, 264, 428, , "Points", 145, 196) ;Genetic apex
+		FindImageAndClick(233, 400, 264, 428, , "Points", 145, 196) ;click on Dialga until Points appear
 		if(f = true) {
 			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
 			Delay(1)
@@ -2440,7 +2488,7 @@ PackOpening() {
 			adbClick(146, 494) ;146, 494
 		} else if(FindOrLoseImage(120, 70, 150, 100, , "Next2", 0, failSafeTime)) {
 			adbClick(146, 494) ;146, 494
-		} else if(FindOrLoseImage(20, 500, 55, 530, , "Home", 0, failSafeTime)) {
+		} else if(FindOrLoseImage(76, 505, 95, 523, , "Home2", 0, failSafeTime)) {
 			break
 		} else if(FindOrLoseImage(178, 193, 251, 282, , "Hourglass", 0, failSafeTime)) {
 			break
@@ -2574,7 +2622,7 @@ getFriendCode() {
 			adbClick(146, 494) ;146, 494
 		} else if(FindOrLoseImage(120, 70, 150, 100, , "Next2", 0, failSafeTime)) {
 			adbClick(146, 494) ;146, 494
-		} else if(FindOrLoseImage(20, 500, 55, 530, , "Home", 0, failSafeTime)) {
+		} else if(FindOrLoseImage(76, 505, 95, 523, , "Home2", 0, failSafeTime)) {
 			break
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
