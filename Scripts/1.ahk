@@ -1242,7 +1242,7 @@ killGodPackInstance(){
 }
 
 restartGameInstance(reason, RL := true){
-	global Delay, scriptName, adbShell, adbPath, adbPort
+	global Delay, scriptName, adbShell, adbPath, adbPort, username
 	initializeAdbShell()
 	CreateStatusMessage("Restarting game reason: " reason)
 	
@@ -1298,7 +1298,7 @@ restartGameInstance(reason, RL := true){
 			CreateStatusMessage("In failsafe for Country/Menu. It's been: " . failSafeTime "s ")
 			LogToFile("In failsafe for Country/Menu. It's been: " . failSafeTime "s ")
 		}
-		LogToFile("Restarted game for instance " scriptName " Reason: " reason, "Restart.txt")
+		LogToFile("Restarted game for instance " scriptName " username " username " Reason: " reason, "Restart.txt")
 		Reload
 	}
 }
