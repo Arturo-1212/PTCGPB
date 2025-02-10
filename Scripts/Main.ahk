@@ -16,110 +16,108 @@ WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
 
-	deleteAccount := false
-	scriptName := StrReplace(A_ScriptName, ".ahk")
-	winTitle := scriptName
-	pauseToggle := false
-	showStatus := true
-	jsonFileName := A_ScriptDir . "\..\json\Packs.json"
-	IniRead, FriendID, %A_ScriptDir%\..\Settings.ini, UserSettings, FriendID
-	IniRead, Instances, %A_ScriptDir%\..\Settings.ini, UserSettings, Instances
-	IniRead, Delay, %A_ScriptDir%\..\Settings.ini, UserSettings, Delay, 250
-	IniRead, folderPath, %A_ScriptDir%\..\Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
-	IniRead, Variation, %A_ScriptDir%\..\Settings.ini, UserSettings, Variation, 20
-	IniRead, changeDate, %A_ScriptDir%\..\Settings.ini, UserSettings, ChangeDate, 0100
-	IniRead, Columns, %A_ScriptDir%\..\Settings.ini, UserSettings, Columns, 5
-	IniRead, openPack, %A_ScriptDir%\..\Settings.ini, UserSettings, openPack, 1
-	IniRead, setSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, setSpeed, 2x
-	IniRead, defaultLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, defaultLanguage, Scale125
-	IniRead, SelectedMonitorIndex, %A_ScriptDir%\..\Settings.ini, UserSettings, SelectedMonitorIndex, 1:
-	IniRead, swipeSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, swipeSpeed, 600
-	IniRead, skipInvalidGP, %A_ScriptDir%\..\Settings.ini, UserSettings, skipInvalidGP, No
-	IniRead, godPack, %A_ScriptDir%\..\Settings.ini, UserSettings, godPack, Continue
-	IniRead, discordWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, discordWebhookURL, ""
-	IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
-	IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Hoard
-	IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
-	IniRead, heartBeat, %A_ScriptDir%\..\Settings.ini, UserSettings, heartBeat, 1
-	if(heartBeat)
-		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
-	
-	adbPort := findAdbPorts(folderPath)
-	
-	adbPath := folderPath . "\MuMuPlayerGlobal-12.0\shell\adb.exe"
-	
-	if !FileExist(adbPath) ;if international mumu file path isn't found look for chinese domestic path
-		adbPath := folderPath . "\MuMu Player 12\shell\adb.exe"
-	
-	if !FileExist(adbPath)
-		MsgBox Double check your folder path! It should be the one that contains the MuMuPlayer 12 folder! `nDefault is just C:\Program Files\Netease
-	
-	if(!adbPort) {
-		Msgbox, Invalid port... Check the common issues section in the readme/github guide.
-		ExitApp
+deleteAccount := false
+scriptName := StrReplace(A_ScriptName, ".ahk")
+winTitle := scriptName
+pauseToggle := false
+showStatus := true
+jsonFileName := A_ScriptDir . "\..\json\Packs.json"
+IniRead, FriendID, %A_ScriptDir%\..\Settings.ini, UserSettings, FriendID
+IniRead, Instances, %A_ScriptDir%\..\Settings.ini, UserSettings, Instances
+IniRead, Delay, %A_ScriptDir%\..\Settings.ini, UserSettings, Delay, 250
+IniRead, folderPath, %A_ScriptDir%\..\Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
+IniRead, Variation, %A_ScriptDir%\..\Settings.ini, UserSettings, Variation, 20
+IniRead, changeDate, %A_ScriptDir%\..\Settings.ini, UserSettings, ChangeDate, 0100
+IniRead, Columns, %A_ScriptDir%\..\Settings.ini, UserSettings, Columns, 5
+IniRead, openPack, %A_ScriptDir%\..\Settings.ini, UserSettings, openPack, 1
+IniRead, setSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, setSpeed, 2x
+IniRead, defaultLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, defaultLanguage, Scale125
+IniRead, SelectedMonitorIndex, %A_ScriptDir%\..\Settings.ini, UserSettings, SelectedMonitorIndex, 1:
+IniRead, swipeSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, swipeSpeed, 600
+IniRead, skipInvalidGP, %A_ScriptDir%\..\Settings.ini, UserSettings, skipInvalidGP, No
+IniRead, godPack, %A_ScriptDir%\..\Settings.ini, UserSettings, godPack, Continue
+IniRead, discordWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, discordWebhookURL, ""
+IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
+IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Hoard
+IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
+IniRead, heartBeat, %A_ScriptDir%\..\Settings.ini, UserSettings, heartBeat, 1
+if(heartBeat)
+	IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+
+adbPort := findAdbPorts(folderPath)
+
+adbPath := folderPath . "\MuMuPlayerGlobal-12.0\shell\adb.exe"
+
+if !FileExist(adbPath) ;if international mumu file path isn't found look for chinese domestic path
+	adbPath := folderPath . "\MuMu Player 12\shell\adb.exe"
+
+if !FileExist(adbPath)
+	MsgBox Double check your folder path! It should be the one that contains the MuMuPlayer 12 folder! `nDefault is just C:\Program Files\Netease
+
+if(!adbPort) {
+	Msgbox, Invalid port... Check the common issues section in the readme/github guide.
+	ExitApp
+}
+
+; connect adb
+instanceSleep := scriptName * 1000
+Sleep, %instanceSleep%
+
+; Attempt to connect to ADB
+ConnectAdb()
+
+if (InStr(defaultLanguage, "100")) {
+	scaleParam := 287
+} else {
+	scaleParam := 277
+}
+
+resetWindows()
+MaxRetries := 10
+RetryCount := 0
+Loop {
+	try {
+		WinGetPos, x, y, Width, Height, %winTitle%
+		sleep, 2000
+		;Winset, Alwaysontop, On, %winTitle%
+		OwnerWND := WinExist(winTitle)
+		x4 := x + 5
+		y4 := y + 44
+
+		Gui, New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption
+		Gui, Default
+		Gui, Margin, 4, 4  ; Set margin for the GUI
+		Gui, Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
+		Gui, Add, Button, x0 y0 w30 h25 gReloadScript, Reload  (F5)
+		Gui, Add, Button, x30 y0 w30 h25 gPauseScript, Pause (F6)
+		Gui, Add, Button, x60 y0 w40 h25 gResumeScript, Resume (F6)
+		Gui, Add, Button, x100 y0 w30 h25 gStopScript, Stop (F7)
+		Gui, Add, Button, x130 y0 w40 h25 gShowStatusMessages, Status (F8)
+		Gui, Show, NoActivate x%x4% y%y4% AutoSize
+		break
 	}
-	
-	; connect adb
-	instanceSleep := scriptName * 1000
-	Sleep, %instanceSleep%
-	
-	; Attempt to connect to ADB
-	ConnectAdb()
-	
-	if (InStr(defaultLanguage, "100")) {
-		scaleParam := 287
-	} else {
-		scaleParam := 277
-	}
-		
-		
-	resetWindows()
-	MaxRetries := 10
-	RetryCount := 0
-	Loop {
-		try {
-			WinGetPos, x, y, Width, Height, %winTitle%
-			sleep, 2000
-			;Winset, Alwaysontop, On, %winTitle%
-			OwnerWND := WinExist(winTitle)
-			x4 := x + 5
-			y4 := y + 44
-			
-		
-			Gui, New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption 
-			Gui, Default
-			Gui, Margin, 4, 4  ; Set margin for the GUI
-			Gui, Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
-			Gui, Add, Button, x0 y0 w30 h25 gReloadScript, Reload  (F5)
-			Gui, Add, Button, x30 y0 w30 h25 gPauseScript, Pause (F6)
-			Gui, Add, Button, x60 y0 w40 h25 gResumeScript, Resume (F6)
-			Gui, Add, Button, x100 y0 w30 h25 gStopScript, Stop (F7)
-			Gui, Add, Button, x130 y0 w40 h25 gShowStatusMessages, Status (F8)
-			Gui, Show, NoActivate x%x4% y%y4% AutoSize
+	catch {
+		RetryCount++
+		if (RetryCount >= MaxRetries) {
+			CreateStatusMessage("Failed to create button gui.")
 			break
 		}
-		catch {
-			RetryCount++
-			if (RetryCount >= MaxRetries) {
-				CreateStatusMessage("Failed to create button gui.")
-				break
-			}
-			Sleep, 1000
-		}
-		Sleep, %Delay%
-		CreateStatusMessage("Trying to create button gui...")
+		Sleep, 1000
 	}
+	Sleep, %Delay%
+	CreateStatusMessage("Trying to create button gui...")
+}
 
-	rerollTime := A_TickCount	
-	
-	initializeAdbShell()
-	restartGameInstance("Initializing bot...", false)
-	pToken := Gdip_Startup()
-	
-	if(heartBeat)
-		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
-	FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 150)
-	firstRun := true
+rerollTime := A_TickCount
+
+initializeAdbShell()
+restartGameInstance("Initializing bot...", false)
+pToken := Gdip_Startup()
+
+if(heartBeat)
+	IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 150)
+firstRun := true
 Loop {
 	if(heartBeat)
 		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
@@ -179,7 +177,7 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		searchVariation := Variation
 	imagePath := A_ScriptDir . "\" . defaultLanguage . "\"
 	confirmed := false
-	
+
 	CreateStatusMessage(imageName)
 	pBitmap := from_window(WinExist(winTitle))
 	Path = %imagePath%%imageName%.png
@@ -226,7 +224,7 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 	if(imageName = "Country" || imageName = "Social")
 		FSTime := 90
 	else
-		FSTime := 45 
+		FSTime := 45
 	if (safeTime >= FSTime) {
 		CreateStatusMessage("Instance " . scriptName . " has been `nstuck " . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
 		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName)
@@ -250,7 +248,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 	x := 0
 	y := 0
 	StartSkipTime := A_TickCount
-	
+
 	confirmed := false
 
 	; 100% scale changes
@@ -271,13 +269,12 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			clicky := 505
 		}
 	}
-		
+
 	if(click) {
 		adbClick(clickx, clicky)
 		clickTime := A_TickCount
 	}
 	CreateStatusMessage(imageName)
-
 
 	Loop { ; Main loop
 		Sleep, 10
@@ -288,7 +285,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 				clickTime := A_TickCount
 			}
 		}
-		
+
 		if (confirmed) {
 			continue
 		}
@@ -339,7 +336,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			CreateStatusMessage("At home page. Opening app..." )
 			restartGameInstance("Found myself at the home page during: `n" imageName)
 		}
-		
+
 		if(skip) {
 			ElapsedTime := (A_TickCount - StartSkipTime) // 1000
 			if (ElapsedTime >= skip) {
@@ -350,8 +347,8 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 		}
 		if (confirmed) {
 			break
-		}		
-		
+		}
+
 	}
 	return confirmed
 }
@@ -370,16 +367,16 @@ resetWindows(){
 			Title := winTitle
 			rowHeight := 533  ; Adjust the height of each row
 			currentRow := Floor((1 - 1) / Columns)
-			y := currentRow * rowHeight	
+			y := currentRow * rowHeight
 			x := Mod((1 - 1), Columns) * scaleParam
-	
+
 			WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
 			break
 		}
 		catch {
 			if (RetryCount > MaxRetries)
 				CreateStatusMessage("Pausing. Can't find window " . winTitle)
-				Pause
+			Pause
 		}
 		Sleep, 1000
 	}
@@ -390,7 +387,7 @@ restartGameInstance(reason, RL := true){
 	global Delay, scriptName, adbShell, adbPath, adbPort
 	initializeAdbShell()
 	CreateStatusMessage("Restarting game reason: " reason)
-	
+
 	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
 	;adbShell.StdIn.WriteLine("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
 	Sleep, 3000
@@ -429,9 +426,9 @@ CreateStatusMessage(Message, GuiName := 50, X := 0, Y := 80) {
 			X := 0
 		if(!Y)
 			Y := 0
-		
+
 		; Create a new GUI with the given name, position, and message
-		Gui, %GuiName%:New, -AlwaysOnTop +ToolWindow -Caption 
+		Gui, %GuiName%:New, -AlwaysOnTop +ToolWindow -Caption
 		Gui, %GuiName%:Margin, 2, 2  ; Set margin for the GUI
 		Gui, %GuiName%:Font, s8  ; Set the font size to 8 (adjust as needed)
 		Gui, %GuiName%:Add, Text, vStatusText, %Message%
@@ -443,7 +440,7 @@ adbClick(X, Y) {
 	global adbShell, setSpeed, adbPath, adbPort
 	initializeAdbShell()
 	X := Round(X / 277 * 540)
-	Y := Round((Y - 44) / 489 * 960) 
+	Y := Round((Y - 44) / 489 * 960)
 	adbShell.StdIn.WriteLine("input tap " X " " Y)
 }
 
@@ -453,15 +450,15 @@ ControlClick(X, Y) {
 }
 
 RandomUsername() {
-    FileRead, content, %A_ScriptDir%\..\usernames.txt
+	FileRead, content, %A_ScriptDir%\..\usernames.txt
 
-    values := StrSplit(content, "`r`n") ; Use `n if the file uses Unix line endings
+	values := StrSplit(content, "`r`n") ; Use `n if the file uses Unix line endings
 
-    ; Get a random index from the array
-    Random, randomIndex, 1, values.MaxIndex()
+	; Get a random index from the array
+	Random, randomIndex, 1, values.MaxIndex()
 
-    ; Return the random value
-    return values[randomIndex]
+	; Return the random value
+	return values[randomIndex]
 }
 
 adbInput(name) {
@@ -473,8 +470,8 @@ adbInput(name) {
 adbSwipeUp() {
 	global adbShell, adbPath, adbPort
 	initializeAdbShell()
-	adbShell.StdIn.WriteLine("input swipe 309 816 309 355 60") 
-	;adbShell.StdIn.WriteLine("input swipe 309 816 309 555 30")	
+	adbShell.StdIn.WriteLine("input swipe 309 816 309 355 60")
+	;adbShell.StdIn.WriteLine("input swipe 309 816 309 555 30")
 	Sleep, 150
 }
 
@@ -486,7 +483,7 @@ adbSwipe() {
 	X2 := 267
 	Y2 := 327
 	X1 := Round(X1 / 277 * 535)
-	Y1 := Round((Y1 - 44) / 489 * 960) 
+	Y1 := Round((Y1 - 44) / 489 * 960)
 	X2 := Round(X2 / 44 * 535)
 	Y2 := Round((Y2 - 44) / 489 * 960)
 	if(setSpeed = 1) {
@@ -498,7 +495,7 @@ adbSwipe() {
 		adbShell.StdIn.WriteLine("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
 		sleepDuration := swipeSpeed * 1.2
 		Sleep, %sleepDuration%
-	} 
+	}
 	else {
 		adbShell.StdIn.WriteLine("input swipe " . X1 . " " . Y1 . " " . X2 . " " . Y2 . " " . swipeSpeed)
 		sleepDuration := swipeSpeed * 1.2
@@ -514,13 +511,13 @@ Screenshot(filename := "Valid") {
 	screenshotsDir := A_ScriptDir "\..\Screenshots"
 	if !FileExist(screenshotsDir)
 		FileCreateDir, %screenshotsDir%
-		
+
 	; File path for saving the screenshot locally
 	screenshotFile := screenshotsDir "\" . A_Now . "_" . winTitle . "_" . filename . "_" . packs . "_packs.png"
 
 	pBitmap := from_window(WinExist(winTitle))
-	Gdip_SaveBitmapToFile(pBitmap, screenshotFile) 
-	
+	Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
+
 	return screenshotFile
 }
 
@@ -573,37 +570,37 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 		}
 	}
 }
-	; Pause Script
-	PauseScript:
-		CreateStatusMessage("Pausing...")
-		Pause, On
-	return
+; Pause Script
+PauseScript:
+	CreateStatusMessage("Pausing...")
+	Pause, On
+return
 
-	; Resume Script
-	ResumeScript:
-		CreateStatusMessage("Resuming...")
-		Pause, Off
-		StartSkipTime := A_TickCount ;reset stuck timers
-		failSafe := A_TickCount
-	return
+; Resume Script
+ResumeScript:
+	CreateStatusMessage("Resuming...")
+	Pause, Off
+	StartSkipTime := A_TickCount ;reset stuck timers
+	failSafe := A_TickCount
+return
 
-	; Stop Script
-	StopScript:
-		CreateStatusMessage("Stopping script...")
-		ExitApp
-	return
-	
-	ShowStatusMessages:
-		ToggleStatusMessages()
-	return
-	
-	ReloadScript:
-		Reload
-	return
-	
-	TestScript:
-		ToggleTestScript()
-	return
+; Stop Script
+StopScript:
+	CreateStatusMessage("Stopping script...")
+ExitApp
+return
+
+ShowStatusMessages:
+	ToggleStatusMessages()
+return
+
+ReloadScript:
+	Reload
+return
+
+TestScript:
+	ToggleTestScript()
+return
 
 ToggleTestScript()
 {
@@ -696,52 +693,49 @@ SumVariablesInJsonFile() {
 	return sum
 }
 
-
-
 from_window(ByRef image) {
-  ; Thanks tic - https://www.autohotkey.com/boards/viewtopic.php?t=6517
+	; Thanks tic - https://www.autohotkey.com/boards/viewtopic.php?t=6517
 
-  ; Get the handle to the window.
-  image := (hwnd := WinExist(image)) ? hwnd : image
+	; Get the handle to the window.
+	image := (hwnd := WinExist(image)) ? hwnd : image
 
-  ; Restore the window if minimized! Must be visible for capture.
-  if DllCall("IsIconic", "ptr", image)
-	 DllCall("ShowWindow", "ptr", image, "int", 4)
+	; Restore the window if minimized! Must be visible for capture.
+	if DllCall("IsIconic", "ptr", image)
+		DllCall("ShowWindow", "ptr", image, "int", 4)
 
-  ; Get the width and height of the client window.
-  VarSetCapacity(Rect, 16) ; sizeof(RECT) = 16
-  DllCall("GetClientRect", "ptr", image, "ptr", &Rect)
-	 , width  := NumGet(Rect, 8, "int")
-	 , height := NumGet(Rect, 12, "int")
+	; Get the width and height of the client window.
+	VarSetCapacity(Rect, 16) ; sizeof(RECT) = 16
+	DllCall("GetClientRect", "ptr", image, "ptr", &Rect)
+		, width  := NumGet(Rect, 8, "int")
+		, height := NumGet(Rect, 12, "int")
 
-  ; struct BITMAPINFOHEADER - https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
-  hdc := DllCall("CreateCompatibleDC", "ptr", 0, "ptr")
-  VarSetCapacity(bi, 40, 0)                ; sizeof(bi) = 40
- , NumPut(       40, bi,  0,   "uint") ; Size
- , NumPut(    width, bi,  4,   "uint") ; Width
- , NumPut(  -height, bi,  8,    "int") ; Height - Negative so (0, 0) is top-left.
- , NumPut(        1, bi, 12, "ushort") ; Planes
- , NumPut(       32, bi, 14, "ushort") ; BitCount / BitsPerPixel
- , NumPut(        0, bi, 16,   "uint") ; Compression = BI_RGB
-     , NumPut(        3, bi, 20,   "uint") ; Quality setting (3 = low quality, no anti-aliasing) 
-  hbm := DllCall("CreateDIBSection", "ptr", hdc, "ptr", &bi, "uint", 0, "ptr*", pBits:=0, "ptr", 0, "uint", 0, "ptr")
-  obm := DllCall("SelectObject", "ptr", hdc, "ptr", hbm, "ptr")
+	; struct BITMAPINFOHEADER - https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
+	hdc := DllCall("CreateCompatibleDC", "ptr", 0, "ptr")
+	VarSetCapacity(bi, 40, 0)                ; sizeof(bi) = 40
+		, NumPut(       40, bi,  0,   "uint") ; Size
+		, NumPut(    width, bi,  4,   "uint") ; Width
+		, NumPut(  -height, bi,  8,    "int") ; Height - Negative so (0, 0) is top-left.
+		, NumPut(        1, bi, 12, "ushort") ; Planes
+		, NumPut(       32, bi, 14, "ushort") ; BitCount / BitsPerPixel
+		, NumPut(        0, bi, 16,   "uint") ; Compression = BI_RGB
+		, NumPut(        3, bi, 20,   "uint") ; Quality setting (3 = low quality, no anti-aliasing)
+	hbm := DllCall("CreateDIBSection", "ptr", hdc, "ptr", &bi, "uint", 0, "ptr*", pBits:=0, "ptr", 0, "uint", 0, "ptr")
+	obm := DllCall("SelectObject", "ptr", hdc, "ptr", hbm, "ptr")
 
-  ; Print the window onto the hBitmap using an undocumented flag. https://stackoverflow.com/a/40042587
-  DllCall("PrintWindow", "ptr", image, "ptr", hdc, "uint", 0x3) ; PW_CLIENTONLY | PW_RENDERFULLCONTENT
-  ; Additional info on how this is implemented: https://www.reddit.com/r/windows/comments/8ffr56/altprintscreen/
+	; Print the window onto the hBitmap using an undocumented flag. https://stackoverflow.com/a/40042587
+	DllCall("PrintWindow", "ptr", image, "ptr", hdc, "uint", 0x3) ; PW_CLIENTONLY | PW_RENDERFULLCONTENT
+	; Additional info on how this is implemented: https://www.reddit.com/r/windows/comments/8ffr56/altprintscreen/
 
-  ; Convert the hBitmap to a Bitmap using a built in function as there is no transparency.
-  DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "ptr", hbm, "ptr", 0, "ptr*", pBitmap:=0)
+	; Convert the hBitmap to a Bitmap using a built in function as there is no transparency.
+	DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "ptr", hbm, "ptr", 0, "ptr*", pBitmap:=0)
 
-  ; Cleanup the hBitmap and device contexts.
-  DllCall("SelectObject", "ptr", hdc, "ptr", obm)
-  DllCall("DeleteObject", "ptr", hbm)
-  DllCall("DeleteDC",	 "ptr", hdc)
+	; Cleanup the hBitmap and device contexts.
+	DllCall("SelectObject", "ptr", hdc, "ptr", obm)
+	DllCall("DeleteObject", "ptr", hbm)
+	DllCall("DeleteDC",	 "ptr", hdc)
 
-  return pBitmap
+	return pBitmap
 }
-
 
 ~F5::Reload
 ~F6::Pause
@@ -764,7 +758,6 @@ bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
 	Gui, BoundingBox:+LastFound  ; Make the GUI window the last found window for use by the line below. (straght from documentation)
 	WinSet, TransColor, 123456 ; Makes that specific color transparent in the gui
 
-
 	; Create the borders and show
 	Gui, BoundingBox:Add, Progress, x0 y0 w%BoxWidth% h2 BackgroundRed
 	Gui, BoundingBox:Add, Progress, x0 y0 w2 h%BoxHeight% BackgroundRed
@@ -772,7 +765,7 @@ bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
 	Gui, BoundingBox:Add, Progress, x0 y%BoxHeight% w%BoxWidth% h2 BackgroundRed
 	Gui, BoundingBox:Show, x%X1% y%Y1% NoActivate
 	Sleep, 100
-	
+
 	if (doPause) {
 		Pause
 	}
@@ -786,40 +779,40 @@ bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
 
 ; Function to initialize ADB Shell
 initializeAdbShell() {
-    global adbShell, adbPath, adbPort
-    RetryCount := 0
-    MaxRetries := 10
-    BackoffTime := 1000  ; Initial backoff time in milliseconds
+	global adbShell, adbPath, adbPort
+	RetryCount := 0
+	MaxRetries := 10
+	BackoffTime := 1000  ; Initial backoff time in milliseconds
 
-    Loop {
-        try {
-            if (!adbShell) {
-                ; Validate adbPath and adbPort
-                if (!FileExist(adbPath)) {
-                    throw "ADB path is invalid."
-                }
-                if (adbPort < 0 || adbPort > 65535)
+	Loop {
+		try {
+			if (!adbShell) {
+				; Validate adbPath and adbPort
+				if (!FileExist(adbPath)) {
+					throw "ADB path is invalid."
+				}
+				if (adbPort < 0 || adbPort > 65535)
 					throw "ADB port is invalid."
-				
+
 				adbShell := ComObjCreate("WScript.Shell").Exec(adbPath . " -s 127.0.0.1:" . adbPort . " shell")
 
-                adbShell.StdIn.WriteLine("su")
-            } else if (adbShell.Status != 0) {
-                Sleep, BackoffTime
-                BackoffTime += 1000 ; Increase the backoff time
-            } else {
-                break
-            }
-        } catch e {
-            RetryCount++
-            if (RetryCount > MaxRetries) {
-                CreateStatusMessage("Failed to connect to shell: " . e.message)
+				adbShell.StdIn.WriteLine("su")
+			} else if (adbShell.Status != 0) {
+				Sleep, BackoffTime
+				BackoffTime += 1000 ; Increase the backoff time
+			} else {
+				break
+			}
+		} catch e {
+			RetryCount++
+			if (RetryCount > MaxRetries) {
+				CreateStatusMessage("Failed to connect to shell: " . e.message)
 				LogToFile("Failed to connect to shell: " . e.message)
-                Pause
-            }
-        }
-        Sleep, BackoffTime
-    }
+				Pause
+			}
+		}
+		Sleep, BackoffTime
+	}
 }
 ConnectAdb() {
 	global adbPath, adbPort, StatusText
@@ -854,8 +847,8 @@ ConnectAdb() {
 
 CmdRet(sCmd, callBackFuncObj := "", encoding := "")
 {
-   static HANDLE_FLAG_INHERIT := 0x00000001, flags := HANDLE_FLAG_INHERIT
-        , STARTF_USESTDHANDLES := 0x100, CREATE_NO_WINDOW := 0x08000000
+	static HANDLE_FLAG_INHERIT := 0x00000001, flags := HANDLE_FLAG_INHERIT
+		, STARTF_USESTDHANDLES := 0x100, CREATE_NO_WINDOW := 0x08000000
 
    (encoding = "" && encoding := "cp" . DllCall("GetOEMCP", "UInt"))
    DllCall("CreatePipe", "PtrP", hPipeRead, "PtrP", hPipeWrite, "Ptr", 0, "UInt", 0)
@@ -906,7 +899,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 	mumuFolder = %baseFolder%\MuMuPlayerGlobal-12.0\vms\*
 	if !FileExist(mumuFolder)
 		mumuFolder = %baseFolder%\MuMu Player 12\vms\*
-		
+
 	if !FileExist(mumuFolder){
 		MsgBox, 16, , Double check your folder path! It should be the one that contains the MuMuPlayer 12 folder! `nDefault is just C:\Program Files\Netease
 		ExitApp
@@ -923,7 +916,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 			; Define paths to vm_config.json and extra_config.json
 			vmConfigFile := configFolder "\vm_config.json"
 			extraConfigFile := configFolder "\extra_config.json"
-			
+
 			; Check if vm_config.json exists and read adb host port
 			IfExist, %vmConfigFile%
 			{
@@ -932,7 +925,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 				RegExMatch(vmConfigContent, """host_port"":\s*""(\d+)""", adbHostPort)
 				adbPort := adbHostPort1  ; Capture the adb host port value
 			}
-			
+
 			; Check if extra_config.json exists and read playerName
 			IfExist, %extraConfigFile%
 			{
@@ -957,7 +950,6 @@ MonthToDays(year, month) {
         days += 1
     return days
 }
-
 
 IsLeapYear(year) {
     return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0

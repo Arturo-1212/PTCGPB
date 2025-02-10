@@ -5,9 +5,9 @@ SetTitleMatchMode, 3
 
 if not A_IsAdmin
 {
-    ; Relaunch script with admin rights
-    Run *RunAs "%A_ScriptFullPath%"
-    ExitApp
+	; Relaunch script with admin rights
+	Run *RunAs "%A_ScriptFullPath%"
+	ExitApp
 }
 
 ;KillADBProcesses()
@@ -34,31 +34,31 @@ if FileExist(packsFile) ; Check if the file exists
 InitializeJsonFile() ; Create or open the JSON file
 global FriendID
 ; Create the main GUI for selecting number of instances
-	IniRead, FriendID, Settings.ini, UserSettings, FriendID
-	IniRead, waitTime, Settings.ini, UserSettings, waitTime, 5
-	IniRead, Delay, Settings.ini, UserSettings, Delay, 250
-	IniRead, folderPath, Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
-	IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
-	IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
-	IniRead, changeDate, Settings.ini, UserSettings, ChangeDate, 0100
-	IniRead, Columns, Settings.ini, UserSettings, Columns, 5
-	IniRead, openPack, Settings.ini, UserSettings, openPack, Palkia
-	IniRead, godPack, Settings.ini, UserSettings, godPack, Continue
-	IniRead, Instances, Settings.ini, UserSettings, Instances, 1
-	;IniRead, setSpeed, Settings.ini, UserSettings, setSpeed, 1x/3x
-	IniRead, defaultLanguage, Settings.ini, UserSettings, defaultLanguage, Scale125
-	IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex, 1
-	IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 600
-	IniRead, skipInvalidGP, Settings.ini, UserSettings, skipInvalidGP, Yes
-	IniRead, deleteMethod, Settings.ini, UserSettings, deleteMethod, 3 Pack
-	IniRead, runMain, Settings.ini, UserSettings, runMain, 1
-	IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 0
-	IniRead, heartBeatWebhookURL, Settings.ini, UserSettings, heartBeatWebhookURL, ""
-	IniRead, heartBeatName, Settings.ini, UserSettings, heartBeatName, ""
-	IniRead, nukeAccount, Settings.ini, UserSettings, nukeAccount, 0
-	IniRead, TrainerCheck, Settings.ini, UserSettings, TrainerCheck, No
-	IniRead, FullArtCheck, Settings.ini, UserSettings, FullArtCheck, No
-	IniRead, RainbowCheck, Settings.ini, UserSettings, RainbowCheck, No
+IniRead, FriendID, Settings.ini, UserSettings, FriendID
+IniRead, waitTime, Settings.ini, UserSettings, waitTime, 5
+IniRead, Delay, Settings.ini, UserSettings, Delay, 250
+IniRead, folderPath, Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
+IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
+IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
+IniRead, changeDate, Settings.ini, UserSettings, ChangeDate, 0100
+IniRead, Columns, Settings.ini, UserSettings, Columns, 5
+IniRead, openPack, Settings.ini, UserSettings, openPack, Palkia
+IniRead, godPack, Settings.ini, UserSettings, godPack, Continue
+IniRead, Instances, Settings.ini, UserSettings, Instances, 1
+;IniRead, setSpeed, Settings.ini, UserSettings, setSpeed, 1x/3x
+IniRead, defaultLanguage, Settings.ini, UserSettings, defaultLanguage, Scale125
+IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex, 1
+IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 600
+IniRead, skipInvalidGP, Settings.ini, UserSettings, skipInvalidGP, Yes
+IniRead, deleteMethod, Settings.ini, UserSettings, deleteMethod, 3 Pack
+IniRead, runMain, Settings.ini, UserSettings, runMain, 1
+IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 0
+IniRead, heartBeatWebhookURL, Settings.ini, UserSettings, heartBeatWebhookURL, ""
+IniRead, heartBeatName, Settings.ini, UserSettings, heartBeatName, ""
+IniRead, nukeAccount, Settings.ini, UserSettings, nukeAccount, 0
+IniRead, TrainerCheck, Settings.ini, UserSettings, TrainerCheck, No
+IniRead, FullArtCheck, Settings.ini, UserSettings, FullArtCheck, No
+IniRead, RainbowCheck, Settings.ini, UserSettings, RainbowCheck, No
 
 ; Main GUI setup
 ; Add the link text at the bottom of the GUI
@@ -66,7 +66,7 @@ global FriendID
 Gui, Show, w500 h640, Arturo's PTCGPB Bot Setup ;' Ensure the GUI size is appropriate
 
 Gui, Color, White  ; Set the background color to white
-Gui, Font, s10 Bold , Segoe UI 
+Gui, Font, s10 Bold , Segoe UI
 ; Add the button image on top of the GUI
 ;Gui, Add, Picture, gStart x196 y196 w108 h108 vImageButton  +BackgroundTrans, %normalImage%
 Gui, Add, Button, gArrangeWindows x215 y208 w70 h32, Arrange Windows
@@ -81,18 +81,18 @@ Gui, Add, Picture, x0 y0 w500 h640, %A_ScriptDir%\Scripts\GUI\GUI.png
 
 ; Add input controls
 if(FriendID = "ERROR")
-	FriendID = 
+	FriendID =
 
 if(FriendID = )
 	Gui, Add, Edit, vFriendID x80 y95 w145 h30 Center
 else
 	Gui, Add, Edit, vFriendID x80 y95 w145 h30 Center, %FriendID%
-	
+
 if(runMain)
 	Gui, Add, CheckBox, Checked vrunMain x2 y95 Center, Main
 else
 	Gui, Add, CheckBox, vrunMain x2 y95 Center, Main
-	
+
 Gui, Add, Edit, vInstances x275 y95 w72 Center, %Instances%
 Gui, Add, Edit, vColumns x348 y95 w72 Center, %Columns%
 
@@ -103,7 +103,7 @@ if (openPack = "Palkia") {
 	defaultPack := 2
 } else if (openPack = "Mew") {
 	defaultPack := 3
-} 
+}
 
 Gui, Add, DropDownList, x80 y166 w145 vopenPack choose%defaultPack% Center, Palkia|Dialga|Mew
 global scaleParam
@@ -114,7 +114,7 @@ if (defaultLanguage = "Scale125") {
 } else if (defaultLanguage = "Scale100") {
 	defaultLang := 2
 	scaleParam := 287
-} 
+}
 
 Gui, Add, DropDownList, x80 y245 w145 vdefaultLanguage choose%defaultLang%, Scale125
 
@@ -126,7 +126,7 @@ Loop, %MonitorCount%
 	SysGet, MonitorName, MonitorName, %A_Index%
 	SysGet, Monitor, Monitor, %A_Index%
 	MonitorOptions .= (A_Index > 1 ? "|" : "") "" A_Index ": (" MonitorRight - MonitorLeft "x" MonitorBottom - MonitorTop ")"
-	
+
 }
 SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
 Gui, Add, DropDownList, x275 y245 w145 vSelectedMonitorIndex Choose%SelectedMonitorIndex%, %MonitorOptions%
@@ -136,46 +136,44 @@ Gui, Add, Edit, vChangeDate x275 y332 w145 Center, %ChangeDate%
 
 ; Speed selection logic
 ; if (setSpeed = "2x") {
-	; defaultSpeed := 1
+; defaultSpeed := 1
 ; } else if (setSpeed = "1x/2x") {
-	; defaultSpeed := 2
+; defaultSpeed := 2
 ; } else if (setSpeed = "1x/3x") {
-	; defaultSpeed := 3
+; defaultSpeed := 3
 ; }
 ; Gui, Add, DropDownList, x275 y404 w72 vsetSpeed choose%defaultSpeed% Center, 2x|1x/2x|1x/3x
 
-
 Gui, Add, Edit, vswipeSpeed x348 y404 w72 Center, %swipeSpeed%
-
 
 ; Pack selection logic
 ; if (godPack = "Close") {
-	; defaultgodPack := 1
+; defaultgodPack := 1
 ; } else if (godPack = "Pause") {
-	; defaultgodPack := 2
+; defaultgodPack := 2
 ; } else if (godPack = "Continue") {
-	; defaultgodPack := 3
+; defaultgodPack := 3
 ; }
 
 ; Gui, Add, DropDownList, x275 y166 w145 vgodPack choose%defaultgodPack% Center, Close|Pause|Continue
 
 if (!CardCheck)
-    CardCheck = "Only God Packs" 
-defaultCardCheck := 1 
+	CardCheck = "Only God Packs"
+defaultCardCheck := 1
 if (TrainerCheck = "Yes" && FullArtCheck = "Yes" && RainbowCheck = "Yes")
-    defaultCardCheck := 2      ; All
+	defaultCardCheck := 2      ; All
 else if (TrainerCheck = "Yes" && FullArtCheck = "Yes")
-    defaultCardCheck := 3      ; Trainer+Normal
+	defaultCardCheck := 3      ; Trainer+Normal
 else if (TrainerCheck = "Yes" && RainbowCheck = "Yes")
-    defaultCardCheck := 4      ; Trainer+Rainbow
+	defaultCardCheck := 4      ; Trainer+Rainbow
 else if (FullArtCheck = "Yes" && RainbowCheck = "Yes")
-    defaultCardCheck := 5      ; Normal+Rainbow
+	defaultCardCheck := 5      ; Normal+Rainbow
 else if (TrainerCheck = "Yes")
-    defaultCardCheck := 6      ; Trainer
+	defaultCardCheck := 6      ; Trainer
 else if (FullArtCheck = "Yes")
-    defaultCardCheck := 7      ; Normal
+	defaultCardCheck := 7      ; Normal
 else if (RainbowCheck = "Yes")
-    defaultCardCheck := 8      ; Rainbow
+	defaultCardCheck := 8      ; Rainbow
 
 Gui, Add, DropDownList, x275 y166 w145 vCardCheck choose%defaultCardCheck% Center, Only God Packs|All|Trainer+Full Art|Trainer+Rainbow|Full Art+Rainbow|Trainer|Full Arts|Rainbow
 
@@ -203,7 +201,7 @@ if (deleteMethod = "3 Pack") {
 
 Gui, Add, DropDownList, x80 y546 w145 vdeleteMethod choose%defaultDelete% Center gdeleteSettings, 3 Pack|1 Pack|Inject 1 Pack|Inject 2 Pack
 
-Gui, Font, s10 Bold, Segoe UI 
+Gui, Font, s10 Bold, Segoe UI
 if (InStr(deleteMethod, "Inject"))
 	if(nukeAccount)
 		Gui, Add, CheckBox, Checked vnukeAccount x2 y546 Center Hidden, Menu `nDelete
@@ -215,24 +213,23 @@ else
 	else
 		Gui, Add, CheckBox, vnukeAccount x2 y546 Center, Menu `nDelete
 
-
 Gui, Add, Edit, vfolderPath x80 y404 w145 h35 Center, %folderPath%
 
 if(StrLen(discordUserID) > 2)
 	Gui, Add, Edit, vdiscordUserId x273 y476 w72 h35 Center, %discordUserId%
 else
 	Gui, Add, Edit, vdiscordUserId x273 y476 w72 h35 Center
-	
+
 if(StrLen(discordWebhookURL) > 2)
 	Gui, Add, Edit, vdiscordWebhookURL x348 y476 w72 h35 Center, %discordWebhookURL%
 else
 	Gui, Add, Edit, vdiscordWebhookURL x348 y476 w72 h35 Center
-	
+
 if(StrLen(heartBeatName) < 3)
-	heartBeatName = 
-	
+	heartBeatName =
+
 if(StrLen(heartBeatWebhookURL) < 3)
-	heartBeatWebhookURL = 
+	heartBeatWebhookURL =
 
 if(heartBeat) {
 	Gui, Add, CheckBox, Checked vheartBeat x273 y512 Center gdiscordSettings, Discord Heartbeat
@@ -244,8 +241,6 @@ else {
 	Gui, Add, Edit, vheartBeatName x273 y532 w72 h20 Center Hidden, %heartBeatName%
 	Gui, Add, Edit, vheartBeatWebhookURL x348 y532 w72 h20 Center Hidden, %heartBeatWebhookURL%
 }
-
-
 
 ; Gui, Font, s10 cGray Norm Bold, Segoe UI  ; Normal font for input labels
 ; Gui Add, Button, x190 y72 w17 h19 gShowMsgName, ? ;Questionmark box for Name Field
@@ -275,24 +270,23 @@ else {
 Gui, Show
 return
 
-
 discordSettings:
-    Gui, Submit, NoHide
+	Gui, Submit, NoHide
 
-    if (heartBeat) {
+	if (heartBeat) {
 		GuiControl, Show, heartBeatName
-        GuiControl, Show, heartBeatWebhookURL
-    }
-    else {
-        GuiControl, Hide, heartBeatName
-        GuiControl, Hide, heartBeatWebhookURL
-    }
+		GuiControl, Show, heartBeatWebhookURL
+	}
+	else {
+		GuiControl, Hide, heartBeatName
+		GuiControl, Hide, heartBeatWebhookURL
+	}
 return
 
 deleteSettings:
-    Gui, Submit, NoHide
+	Gui, Submit, NoHide
 	;GuiControlGet, deleteMethod,, deleteMethod
-	
+
 	if(InStr(deleteMethod, "Inject")) {
 		GuiControl, Hide, nukeAccount
 		nukeAccount = false
@@ -346,7 +340,7 @@ ShowMsgSpeed:
 return
 
 ShowMsgSwipeSpeed:
-	MsgBox, Input the swipe speed in milliseconds. `nAnything from 100 to 1000 can probably work. `nPlay around with the speed to get the best speed for your system. Lower number = faster speed. 
+	MsgBox, Input the swipe speed in milliseconds. `nAnything from 100 to 1000 can probably work. `nPlay around with the speed to get the best speed for your system. Lower number = faster speed.
 return
 
 ShowMsgdiscordID:
@@ -386,169 +380,168 @@ OpenDiscord:
 return
 
 Start:
-Gui, Submit  ; Collect the input values from the first page
-Instances := Instances  ; Directly reference the "Instances" variable
+	Gui, Submit  ; Collect the input values from the first page
+	Instances := Instances  ; Directly reference the "Instances" variable
 
-if (CardCheck = "Only God Packs") {
-    TrainerCheck := "No"
-    FullArtCheck := "No"
-    RainbowCheck := "No"
-} else if (CardCheck = "All") {
-    TrainerCheck := "Yes"
-    FullArtCheck := "Yes"
-    RainbowCheck := "Yes"
-} else if (CardCheck = "Trainer") {
-    TrainerCheck := "Yes"
-    FullArtCheck := "No"
-    RainbowCheck := "No"
-} else if (CardCheck = "Full Arts") {
-    TrainerCheck := "No"
-    FullArtCheck := "Yes"
-    RainbowCheck := "No"
-} else if (CardCheck = "Rainbow") {
-    TrainerCheck := "No"
-    FullArtCheck := "No"
-    RainbowCheck := "Yes"
-} else if (CardCheck = "Trainer+Full Art") {
-    TrainerCheck := "Yes"
-    FullArtCheck := "Yes"
-    RainbowCheck := "No"
-} else if (CardCheck = "Trainer+Rainbow") {
-    TrainerCheck := "Yes"
-    FullArtCheck := "No"
-    RainbowCheck := "Yes"
-} else if (CardCheck = "Full Art+Rainbow") {
-    TrainerCheck := "No"
-    FullArtCheck := "Yes"
-    RainbowCheck := "Yes"
-}
-
-; Create the second page dynamically based on the number of instances
-Gui, Destroy ; Close the first page
-
-IniWrite, %FriendID%, Settings.ini, UserSettings, FriendID
-IniWrite, %waitTime%, Settings.ini, UserSettings, waitTime
-IniWrite, %Delay%, Settings.ini, UserSettings, Delay
-IniWrite, %folderPath%, Settings.ini, UserSettings, folderPath
-IniWrite, %discordWebhookURL%, Settings.ini, UserSettings, discordWebhookURL
-IniWrite, %discordUserId%, Settings.ini, UserSettings, discordUserId
-IniWrite, %ChangeDate%, Settings.ini, UserSettings, ChangeDate
-IniWrite, %Columns%, Settings.ini, UserSettings, Columns
-IniWrite, %openPack%, Settings.ini, UserSettings, openPack
-IniWrite, %godPack%, Settings.ini, UserSettings, godPack
-IniWrite, %Instances%, Settings.ini, UserSettings, Instances
-;IniWrite, %setSpeed%, Settings.ini, UserSettings, setSpeed
-IniWrite, %defaultLanguage%, Settings.ini, UserSettings, defaultLanguage
-IniWrite, %SelectedMonitorIndex%, Settings.ini, UserSettings, SelectedMonitorIndex
-IniWrite, %swipeSpeed%, Settings.ini, UserSettings, swipeSpeed
-IniWrite, %skipInvalidGP%, Settings.ini, UserSettings, skipInvalidGP
-IniWrite, %deleteMethod%, Settings.ini, UserSettings, deleteMethod
-IniWrite, %runMain%, Settings.ini, UserSettings, runMain
-IniWrite, %heartBeat%, Settings.ini, UserSettings, heartBeat
-IniWrite, %heartBeatWebhookURL%, Settings.ini, UserSettings, heartBeatWebhookURL
-IniWrite, %heartBeatName%, Settings.ini, UserSettings, heartBeatName
-IniWrite, %nukeAccount%, Settings.ini, UserSettings, nukeAccount
-IniWrite, %TrainerCheck%, Settings.ini, UserSettings, TrainerCheck
-IniWrite, %FullArtCheck%, Settings.ini, UserSettings, FullArtCheck
-IniWrite, %RainbowCheck%, Settings.ini, UserSettings, RainbowCheck
-
-; Loop to process each instance
-Loop, %Instances%
-{
-	if (A_Index != 1) {
-		SourceFile := "Scripts\1.ahk" ; Path to the source .ahk file
-		TargetFolder := "Scripts\" ; Path to the target folder
-		TargetFile := TargetFolder . A_Index . ".ahk" ; Generate target file path
-		FileCopy, %SourceFile%, %TargetFile%, 1 ; Copy source file to target
-		if (ErrorLevel)
-			MsgBox, Failed to create %TargetFile%. Ensure permissions and paths are correct.
+	if (CardCheck = "Only God Packs") {
+		TrainerCheck := "No"
+		FullArtCheck := "No"
+		RainbowCheck := "No"
+	} else if (CardCheck = "All") {
+		TrainerCheck := "Yes"
+		FullArtCheck := "Yes"
+		RainbowCheck := "Yes"
+	} else if (CardCheck = "Trainer") {
+		TrainerCheck := "Yes"
+		FullArtCheck := "No"
+		RainbowCheck := "No"
+	} else if (CardCheck = "Full Arts") {
+		TrainerCheck := "No"
+		FullArtCheck := "Yes"
+		RainbowCheck := "No"
+	} else if (CardCheck = "Rainbow") {
+		TrainerCheck := "No"
+		FullArtCheck := "No"
+		RainbowCheck := "Yes"
+	} else if (CardCheck = "Trainer+Full Art") {
+		TrainerCheck := "Yes"
+		FullArtCheck := "Yes"
+		RainbowCheck := "No"
+	} else if (CardCheck = "Trainer+Rainbow") {
+		TrainerCheck := "Yes"
+		FullArtCheck := "No"
+		RainbowCheck := "Yes"
+	} else if (CardCheck = "Full Art+Rainbow") {
+		TrainerCheck := "No"
+		FullArtCheck := "Yes"
+		RainbowCheck := "Yes"
 	}
-	
-	FileName := "Scripts\" . A_Index . ".ahk"
-	Command := FileName
-	
-	Run, %Command%
-}
-if(runMain) {
-	FileName := "Scripts\Main.ahk"
-	Run, %FileName%
-}
-if(inStr(FriendID, "https"))
-	DownloadFile(FriendID, "ids.txt")
-SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
-SysGet, Monitor, Monitor, %SelectedMonitorIndex%
-rerollTime := A_TickCount
-Loop {
-	Sleep, 30000
-	; Sum all variable values and write to total.json
-	total := SumVariablesInJsonFile()
-	totalSeconds := Round((A_TickCount - rerollTime) / 1000) ; Total time in seconds
-	mminutes := Floor(totalSeconds / 60)
-	if(total = 0)
-	total := "0                             "
-	packStatus := "Time: " . mminutes . "m Packs: " . total
-	CreateStatusMessage(packStatus, 287, 490)
-	if(heartBeat)
-		if((A_Index = 1 || (Mod(A_Index, 60) = 0))) {
-			onlineAHK := "Online: "
-			offlineAHK := "Offline: "
-			Online := []
-			if(runMain) {
-				IniRead, value, HeartBeat.ini, HeartBeat, Main
-				if(value)
-					onlineAHK := "Online: Main, "
-				else
-					offlineAHK := "Offline: Main, "
-				IniWrite, 0, HeartBeat.ini, HeartBeat, Main
-			}
-			Loop %Instances% {
-				IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
-				if(value)
-					Online.push(1)
-				else
-					Online.Push(0)
-				IniWrite, 0, HeartBeat.ini, HeartBeat, Instance%A_Index%
-			}
-			for index, value in Online {
-				if(index = Online.MaxIndex())
-					commaSeparate := "."
-				else
-					commaSeparate := ", "
-				if(value)
-					onlineAHK .= A_Index . commaSeparate
-				else
-					offlineAHK .= A_Index . commaSeparate
-			}
-			if(offlineAHK = "Offline: ")
-				offlineAHK := "Offline: none."
-			if(onlineAHK = "Online: ")
-				onlineAHK := "Online: none."
-			
-			discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus
-			if(heartBeatName)
-				discordUserID := heartBeatName
-			LogToDiscord(discMessage, , discordUserID)
+
+	; Create the second page dynamically based on the number of instances
+	Gui, Destroy ; Close the first page
+
+	IniWrite, %FriendID%, Settings.ini, UserSettings, FriendID
+	IniWrite, %waitTime%, Settings.ini, UserSettings, waitTime
+	IniWrite, %Delay%, Settings.ini, UserSettings, Delay
+	IniWrite, %folderPath%, Settings.ini, UserSettings, folderPath
+	IniWrite, %discordWebhookURL%, Settings.ini, UserSettings, discordWebhookURL
+	IniWrite, %discordUserId%, Settings.ini, UserSettings, discordUserId
+	IniWrite, %ChangeDate%, Settings.ini, UserSettings, ChangeDate
+	IniWrite, %Columns%, Settings.ini, UserSettings, Columns
+	IniWrite, %openPack%, Settings.ini, UserSettings, openPack
+	IniWrite, %godPack%, Settings.ini, UserSettings, godPack
+	IniWrite, %Instances%, Settings.ini, UserSettings, Instances
+	;IniWrite, %setSpeed%, Settings.ini, UserSettings, setSpeed
+	IniWrite, %defaultLanguage%, Settings.ini, UserSettings, defaultLanguage
+	IniWrite, %SelectedMonitorIndex%, Settings.ini, UserSettings, SelectedMonitorIndex
+	IniWrite, %swipeSpeed%, Settings.ini, UserSettings, swipeSpeed
+	IniWrite, %skipInvalidGP%, Settings.ini, UserSettings, skipInvalidGP
+	IniWrite, %deleteMethod%, Settings.ini, UserSettings, deleteMethod
+	IniWrite, %runMain%, Settings.ini, UserSettings, runMain
+	IniWrite, %heartBeat%, Settings.ini, UserSettings, heartBeat
+	IniWrite, %heartBeatWebhookURL%, Settings.ini, UserSettings, heartBeatWebhookURL
+	IniWrite, %heartBeatName%, Settings.ini, UserSettings, heartBeatName
+	IniWrite, %nukeAccount%, Settings.ini, UserSettings, nukeAccount
+	IniWrite, %TrainerCheck%, Settings.ini, UserSettings, TrainerCheck
+	IniWrite, %FullArtCheck%, Settings.ini, UserSettings, FullArtCheck
+	IniWrite, %RainbowCheck%, Settings.ini, UserSettings, RainbowCheck
+
+	; Loop to process each instance
+	Loop, %Instances%
+	{
+		if (A_Index != 1) {
+			SourceFile := "Scripts\1.ahk" ; Path to the source .ahk file
+			TargetFolder := "Scripts\" ; Path to the target folder
+			TargetFile := TargetFolder . A_Index . ".ahk" ; Generate target file path
+			FileCopy, %SourceFile%, %TargetFile%, 1 ; Copy source file to target
+			if (ErrorLevel)
+				MsgBox, Failed to create %TargetFile%. Ensure permissions and paths are correct.
 		}
-}
+
+		FileName := "Scripts\" . A_Index . ".ahk"
+		Command := FileName
+
+		Run, %Command%
+	}
+	if(runMain) {
+		FileName := "Scripts\Main.ahk"
+		Run, %FileName%
+	}
+	if(inStr(FriendID, "https"))
+		DownloadFile(FriendID, "ids.txt")
+	SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
+	SysGet, Monitor, Monitor, %SelectedMonitorIndex%
+	rerollTime := A_TickCount
+	Loop {
+		Sleep, 30000
+		; Sum all variable values and write to total.json
+		total := SumVariablesInJsonFile()
+		totalSeconds := Round((A_TickCount - rerollTime) / 1000) ; Total time in seconds
+		mminutes := Floor(totalSeconds / 60)
+		if(total = 0)
+			total := "0                             "
+		packStatus := "Time: " . mminutes . "m Packs: " . total
+		CreateStatusMessage(packStatus, 287, 490)
+		if(heartBeat)
+			if((A_Index = 1 || (Mod(A_Index, 60) = 0))) {
+				onlineAHK := "Online: "
+				offlineAHK := "Offline: "
+				Online := []
+				if(runMain) {
+					IniRead, value, HeartBeat.ini, HeartBeat, Main
+					if(value)
+						onlineAHK := "Online: Main, "
+					else
+						offlineAHK := "Offline: Main, "
+					IniWrite, 0, HeartBeat.ini, HeartBeat, Main
+				}
+				Loop %Instances% {
+					IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
+					if(value)
+						Online.push(1)
+					else
+						Online.Push(0)
+					IniWrite, 0, HeartBeat.ini, HeartBeat, Instance%A_Index%
+				}
+				for index, value in Online {
+					if(index = Online.MaxIndex())
+						commaSeparate := "."
+					else
+						commaSeparate := ", "
+					if(value)
+						onlineAHK .= A_Index . commaSeparate
+					else
+						offlineAHK .= A_Index . commaSeparate
+				}
+				if(offlineAHK = "Offline: ")
+					offlineAHK := "Offline: none."
+				if(onlineAHK = "Online: ")
+					onlineAHK := "Online: none."
+
+				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus
+				if(heartBeatName)
+					discordUserID := heartBeatName
+				LogToDiscord(discMessage, , discordUserID)
+			}
+	}
 Return
 
 GuiClose:
 ExitApp
 
 MonthToDays(year, month) {
-    static DaysInMonths := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    days := 0
-    Loop, % month - 1 {
-        days += DaysInMonths[A_Index]
-    }
-    if (month > 2 && IsLeapYear(year))
-        days += 1
-    return days
+	static DaysInMonths := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+	days := 0
+	Loop, % month - 1 {
+		days += DaysInMonths[A_Index]
+	}
+	if (month > 2 && IsLeapYear(year))
+		days += 1
+	return days
 }
 
-
 IsLeapYear(year) {
-    return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0
+	return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0
 }
 
 LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
@@ -556,7 +549,7 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 	discordPing := discordUserId
 	if(heartBeatWebhookURL)
 		discordWebhookURL := heartBeatWebhookURL
-		
+
 	if (discordWebhookURL != "") {
 		MaxRetries := 10
 		RetryCount := 0
@@ -568,14 +561,14 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 					if (FileExist(screenshotFile)) {
 						; Send the image using curl
 						curlCommand := "curl -k "
-    . "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
 						RunWait, %curlCommand%,, Hide
 					}
 				}
 				else {
 					curlCommand := "curl -k "
-    . "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
-						RunWait, %curlCommand%,, Hide
+						. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+					RunWait, %curlCommand%,, Hide
 				}
 				break
 			}
@@ -599,9 +592,9 @@ DownloadFile(url, filename) {
 	URLDownloadToFile, %url%, %localPath%
 
 	; if ErrorLevel
-		; MsgBox, Download failed!
+	; MsgBox, Download failed!
 	; else
-		; MsgBox, File downloaded successfully!
+	; MsgBox, File downloaded successfully!
 
 }
 
@@ -620,7 +613,7 @@ resetWindows(Title, SelectedMonitorIndex){
 
 					rowHeight := 533  ; Adjust the height of each row
 					currentRow := Floor((Title - 1) / Columns)
-					y := currentRow * rowHeight	
+					y := currentRow * rowHeight
 					x := Mod((Title - 1), Columns) * scaleParam
 					Title := "Main"
 					WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
@@ -645,7 +638,7 @@ resetWindows(Title, SelectedMonitorIndex){
 				Title := Title + 1
 			rowHeight := 533  ; Adjust the height of each row
 			currentRow := Floor((Title - 1) / Columns)
-			y := currentRow * rowHeight	
+			y := currentRow * rowHeight
 			x := Mod((Title - 1), Columns) * scaleParam
 			if(runMain)
 				Title := Title - 1
@@ -678,7 +671,7 @@ CreateStatusMessage(Message, X := 0, Y := 80) {
 			if(!OwnerWND)
 				Gui, %GuiName%:New, +ToolWindow -Caption
 			else
-				Gui, %GuiName%:New, +Owner%OwnerWND% +ToolWindow -Caption 
+				Gui, %GuiName%:New, +Owner%OwnerWND% +ToolWindow -Caption
 			Gui, %GuiName%:Margin, 2, 2  ; Set margin for the GUI
 			Gui, %GuiName%:Font, s8  ; Set the font size to 8 (adjust as needed)
 			Gui, %GuiName%:Add, Text, vPacksText, %Message%
@@ -756,7 +749,7 @@ SumVariablesInJsonFile() {
 	}
 
 	; Write the total sum to a file called "total.json"
-	
+
 	if(sum > 0) {
 		totalFile := A_ScriptDir . "\json\total.json"
 		totalContent := "{""total_sum"": " sum "}"
@@ -768,10 +761,10 @@ SumVariablesInJsonFile() {
 }
 
 KillADBProcesses() {
-    ; Use AHK's Process command to close adb.exe
-    Process, Close, adb.exe
-    ; Fallback to taskkill for robustness
-    RunWait, %ComSpec% /c taskkill /IM adb.exe /F /T,, Hide
+	; Use AHK's Process command to close adb.exe
+	Process, Close, adb.exe
+	; Fallback to taskkill for robustness
+	RunWait, %ComSpec% /c taskkill /IM adb.exe /F /T,, Hide
 }
 
 ~F7::ExitApp
