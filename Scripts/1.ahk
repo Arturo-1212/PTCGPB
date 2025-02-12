@@ -513,6 +513,14 @@ AddFriends(renew := false, getFC := false) {
 						break
 					}
 					else if(FindOrLoseImage(165, 250, 190, 275, , "Accepted", 0, failSafeTime)) {
+						if(renew){
+							FindImageAndClick(135, 355, 160, 385, , "Remove", 193, 258, 500)
+							if(!friended)
+								ExitApp
+							FindImageAndClick(165, 250, 190, 275, , "Send", 200, 372, 500)
+							Delay(2)
+							adbClick(243, 258)
+						}
 						break
 					}
 					Sleep, 750
