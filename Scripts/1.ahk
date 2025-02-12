@@ -292,6 +292,10 @@ SelectPack(f := false) {
 	}
 	else if(openPack = "Mewtwo") { ;Mewtwo
 		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
+		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
+		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
+		
+		FindImageAndClick(233, 400, 264, 428, , "Points", 90, 400) ;click on mewtwo until points appears
 		if(f = true) {
 			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
 			Delay(1)
@@ -299,31 +303,16 @@ SelectPack(f := false) {
 			Delay(1)
 			adbClick(210, 464) ; 210 464
 		}
-		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
-		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
-		
-		FindImageAndClick(233, 400, 264, 428, , "Points", 90, 400) ;click on mewtwo until points appears
 		
 		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
 	else if(openPack = "Charizard") { ;Charizard
 		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
-		if(f = true) {
-			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
-			Delay(1)
-			adbClick(210, 464) ; 210 464
-			Delay(1)
-			adbClick(210, 464) ; 210 464
-		}
 		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
 		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
 		
 		FindImageAndClick(233, 400, 264, 428, , "Points", 50, 400) ;click on charizard until points appears
 		
-		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
-	}
-	else if(openPack = "Pikachu") { ;Pikachu
-		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
 		if(f = true) {
 			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
 			Delay(1)
@@ -331,11 +320,22 @@ SelectPack(f := false) {
 			Delay(1)
 			adbClick(210, 464) ; 210 464
 		}
+		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
+	}
+	else if(openPack = "Pikachu") { ;Pikachu
+		FindImageAndClick(233, 400, 264, 428, , "Points", 200, 196) ;click on Palkia until Points appear
 		FindImageAndClick(128, 495, 149, 517, , "Expansion", 233, 460) ;click on select other until X appears 
 		;FindImageAndClick(117, 339, 131, 355, , "Expansion2", 233, 460)
 		
 		FindImageAndClick(233, 400, 264, 428, , "Points", 130, 400) ;click on pikachu until points appears
 		
+		if(f = true) {
+			FindImageAndClick(236, 198, 266, 226, , "Hourglass2", 180, 436, 500) ;stop at hourglasses tutorial 2 180 to 203?
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+			Delay(1)
+			adbClick(210, 464) ; 210 464
+		}
 		FindImageAndClick(233, 486, 272, 519, , "Skip2", 146, 439) ;click on next until skip button appears
 	}
 	else if(openPack = "Palkia") { ;Palkia
