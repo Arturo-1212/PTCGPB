@@ -1237,7 +1237,7 @@ checkBorder() {
 						}
 					}
 				}
-				if(deleteMethod = "1 Pack")
+				if(packMethod)
 					packs := 1
 				if(invalidGP) {
 					Condemn := ["Uh-oh!", "Oops!", "Not quite!", "Better luck next time!", "Yikes!", "That didn’t go as planned.", "Try again!", "Almost had it!", "Not your best effort.", "Keep practicing!", "Oh no!", "Close, but no cigar.", "You missed it!", "Needs work!", "Back to the drawing board!", "Whoops!", "That’s rough!", "Don’t give up!", "Ouch!", "Swing and a miss!", "Room for improvement!", "Could be better.", "Not this time.", "Try harder!", "Missed the mark.", "Keep at it!", "Bummer!", "That’s unfortunate.", "So close!", "Gotta do better!"]
@@ -2480,7 +2480,7 @@ HourglassOpening() {
 
 	adbClick(203, 436) ; 203 436
 	
-	if(deleteMethod = "1 Pack") {
+	if(packMethod) {
 		AddFriends(true)
 		SelectPack(true)
 	}
