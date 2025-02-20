@@ -448,6 +448,9 @@ AddFriends(renew := false, getFC := false) {
 					clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
 					if(clickButton) {
 						StringSplit, pos, clickButton, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 				}
@@ -731,12 +734,17 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			Y1 := 0
 		}
 
+		clicky += 2 ; clicky offset
 		if (imageName = "Platin") { ; can't do text so purple box
 			X1 := 141
 			Y1 := 189
 			X2 := 208
 			Y2 := 224
 		} else if (imageName = "Opening") { ; Opening click (to skip cards) can't click on the immersive skip with 239, 497
+			X1 := 10
+			Y1 := 80
+			X2 := 50
+			Y2 := 115
 			clickx := 250
 			clicky := 505
 		}
@@ -861,6 +869,9 @@ LevelUp() {
 	if(Leveled) {
 		clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime)
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 	}
 	Delay(1)
@@ -1011,6 +1022,9 @@ menuDelete() {
 				clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 				if(clickImage) {
 					StringSplit, pos, clickImage, `,  ; Split at ", "
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
 					adbClick(pos1, pos2)
 				}
 				else {
@@ -1027,6 +1041,9 @@ menuDelete() {
 			Sleep,%Delay%
 		}
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 		break
 		failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1073,6 +1090,9 @@ menuDeleteStart() {
 					clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 					if(clickImage) {
 						StringSplit, pos, clickImage, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 					else {
@@ -1089,6 +1109,9 @@ menuDeleteStart() {
 				Sleep,%Delay%
 			}
 			StringSplit, pos, clickButton, `,  ; Split at ", "
+			if (scaleParam = 287) {
+				pos2 += 5
+			}
 			adbClick(pos1, pos2)
 			break
 			failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1214,6 +1237,15 @@ FindBorders(prefix) {
 		,[196, 284, 249, 286]
 		,[70, 399, 123, 401]
 		,[155, 399, 208, 401]]
+		
+	; 100% scale changes
+	if (scaleParam = 287) {
+		borderCoords := [[31, 278, 84, 280]
+		,[113, 278, 166, 280]
+		,[196, 278, 249, 280]
+		,[71, 395, 124, 397]
+		,[157, 395, 210, 397]]
+	}
 	pBitmap := from_window(WinExist(winTitle))
 	; imagePath := "C:\Users\Arturo\Desktop\PTCGP\GPs\" . Clipboard . ".png"
 	; pBitmap := Gdip_CreateBitmapFromFile(imagePath)
@@ -1243,6 +1275,13 @@ FindGodPack() {
 	}
 	borderCoords := [[20, 284, 90, 286]
 		,[103, 284, 173, 286]]
+		
+	; Change borderCoords if scaleParam is 287 for 100%
+	if (scaleParam = 287) {
+		borderCoords := [[21, 278, 91, 280]
+			,[105, 278, 175, 280]]
+	}
+		
 	if(packs = 3)
 		packs := 0
 	Loop {
@@ -2628,6 +2667,9 @@ HourglassOpening(HG := false) {
 		clickButton := FindOrLoseImage(145, 440, 258, 480, 80, "Button", 0, failSafeTime)
 		if(clickButton) {
 			StringSplit, pos, clickButton, `,  ; Split at ", "
+			if (scaleParam = 287) {
+				pos2 += 5
+			}
 			adbClick(pos1, pos2)
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
@@ -2762,6 +2804,10 @@ DoWonderPick() {
 			clickButton := FindOrLoseImage(100, 367, 190, 480, 100, "Button", 0, failSafeTime)
 			if(clickButton) {
 				StringSplit, pos, clickButton, `,  ; Split at ", "
+					; Adjust pos2 if scaleParam is 287 for 100%
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
 					adbClick(pos1, pos2)
 				Delay(3)
 			}
