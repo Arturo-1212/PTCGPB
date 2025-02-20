@@ -1240,11 +1240,11 @@ FindBorders(prefix) {
 		
 	; 100% scale changes
 	if (scaleParam = 287) {
-		borderCoords := [[31, 278, 84, 280]
-		,[113, 278, 166, 280]
-		,[196, 278, 249, 280]
-		,[71, 395, 124, 397]
-		,[157, 395, 210, 397]]
+		borderCoords := [[30, 277, 85, 281]
+		,[112, 277, 167, 281]
+		,[195, 277, 250, 281]
+		,[70, 394, 125, 398]
+		,[156, 394, 211, 398]]
 	}
 	pBitmap := from_window(WinExist(winTitle))
 	; imagePath := "C:\Users\Arturo\Desktop\PTCGP\GPs\" . Clipboard . ".png"
