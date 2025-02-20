@@ -195,6 +195,12 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 			X2 := 230
 			Y2 := 260
 		}
+		else if (imageName = "99") { ; for  scale100
+			X1 := 65
+			Y1 := 102
+			X2 := 105
+			Y2 := 115
+		}
 	}
 	;bboxAndPause(X1, Y1, X2, Y2)
 
