@@ -1,0 +1,14 @@
+Accounts/*
+!Accounts/Saved/1.txt
+!Accounts/*.ahk
+json/*
+!json/1.txt
+Logs/*
+!Logs/1.txt
+Screenshots/*
+!Screenshots/1.txt
+Scripts/*.ahk
+!Scripts/1.ahk
+!Scripts/Main.ahk
+HeartBeat.ini
+Settings.ini
