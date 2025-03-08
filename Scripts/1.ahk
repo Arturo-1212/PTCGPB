@@ -111,7 +111,7 @@ Loop {
 		x4 := x + 5
 		y4 := y + 44
 
-		Gui, New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption
+		Gui, New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption +LastFound
 		Gui, Default
 		Gui, Margin, 4, 4  ; Set margin for the GUI
 		Gui, Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
@@ -120,6 +120,8 @@ Loop {
 		Gui, Add, Button, x80 y0 w40 h25 gResumeScript, Resume (Shift+F6)
 		Gui, Add, Button, x120 y0 w30 h25 gStopScript, Stop (Shift+F7)
 		Gui, Add, Button, x160 y0 w40 h25 gShowStatusMessages, Status (Shift+F8)
+		DllCall("SetWindowPos", "Ptr", WinExist(), "Ptr", 1  ; HWND_BOTTOM
+				, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE
 		Gui, Show, NoActivate x%x4% y%y4% AutoSize
 		break
 	}
@@ -1110,26 +1112,62 @@ LogToFile(message, logFile := "") {
 
 CreateStatusMessage(Message, GuiName := 50, X := 0, Y := 80) {
 	global scriptName, winTitle, StatusText, showStatus
+	static hwnds = {}
 	if(!showStatus) {
 		return
 	}
 	try {
+		; Check if GUI with this name already exists
 		GuiName := GuiName+scriptName
-		WinGetPos, xpos, ypos, Width, Height, %winTitle%
-		X := X + xpos + 5
-		Y := Y + ypos
-		if(!X)
-			X := 0
-		if(!Y)
-			Y := 0
+		if !hwnds.HasKey(GuiName) {
+			WinGetPos, xpos, ypos, Width, Height, %winTitle%
+			X := X + xpos + 5
+			Y := Y + ypos
+			if(!X)
+				X := 0
+			if(!Y)
+				Y := 0
 
-		; Create a new GUI with the given name, position, and message
-		Gui, %GuiName%:New, -AlwaysOnTop +ToolWindow -Caption
-		Gui, %GuiName%:Margin, 2, 2  ; Set margin for the GUI
-		Gui, %GuiName%:Font, s8  ; Set the font size to 8 (adjust as needed)
-		Gui, %GuiName%:Add, Text, vStatusText, %Message%
-		Gui, %GuiName%:Show, NoActivate x%X% y%Y% AutoSize, NoActivate %GuiName%
+			; Create a new GUI with the given name, position, and message
+			Gui, %GuiName%:New, -AlwaysOnTop +ToolWindow -Caption
+			Gui, %GuiName%:Margin, 2, 2  ; Set margin for the GUI
+			Gui, %GuiName%:Font, s8  ; Set the font size to 8 (adjust as needed)
+			Gui, %GuiName%:Add, Text, hwndhCtrl vStatusText,
+			hwnds[GuiName] := hCtrl
+			OwnerWND := WinExist(winTitle)
+			Gui, %GuiName%:+Owner%OwnerWND% +LastFound
+			DllCall("SetWindowPos", "Ptr", WinExist(), "Ptr", 1  ; HWND_BOTTOM
+				, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE
+			Gui, %GuiName%:Show, NoActivate x%X% y%Y% AutoSize
+		}
+		SetTextAndResize(hwnds[GuiName], Message)
+		Gui, %GuiName%:Show, NoActivate AutoSize
 	}
+}
+
+;Modified from https://stackoverflow.com/a/49354127
+SetTextAndResize(controlHwnd, newText) {
+    dc := DllCall("GetDC", "Ptr", controlHwnd)
+
+    ; 0x31 = WM_GETFONT
+    SendMessage 0x31,,,, ahk_id %controlHwnd%
+    hFont := ErrorLevel
+    oldFont := 0
+    if (hFont != "FAIL")
+        oldFont := DllCall("SelectObject", "Ptr", dc, "Ptr", hFont)
+
+    VarSetCapacity(rect, 16, 0)
+    ; 0x440 = DT_CALCRECT | DT_EXPANDTABS
+    h := DllCall("DrawText", "Ptr", dc, "Ptr", &newText, "Int", -1, "Ptr", &rect, "UInt", 0x440)
+    ; width = rect.right - rect.left
+    w := NumGet(rect, 8, "Int") - NumGet(rect, 0, "Int")
+
+    if oldFont
+        DllCall("SelectObject", "Ptr", dc, "Ptr", oldFont)
+    DllCall("ReleaseDC", "Ptr", controlHwnd, "Ptr", dc)
+
+    GuiControl,, %controlHwnd%, %newText%
+    GuiControl MoveDraw, %controlHwnd%, % "h" h*96/A_ScreenDPI + 2 " w" w*96/A_ScreenDPI + 2
 }
 
 CheckPack() {
