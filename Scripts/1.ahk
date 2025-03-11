@@ -1274,7 +1274,7 @@ CheckPack() {
 }
 
 FoundStars(star) {
-	global scriptName, DeadCheck
+	global scriptName, DeadCheck, ocrLanguage, injectMethod
 	screenShot := Screenshot(star)
 	accountFile := saveAccount(star)
 	friendCode := getFriendCode()
@@ -1286,6 +1286,26 @@ FoundStars(star) {
 
 	if(star = "Crown" || star = "Immersive")
 		RemoveFriends()
+	else {
+		; If we're doing the inject method, try to OCR our Username
+		try {
+			if(injectMethod && IsFunc("ocr_from_file"))
+			{
+					ocrText := Func("ocr_from_file").Call(fcScreenshot, ocrLanguage)
+					ocrLines := StrSplit(ocrText, "`n")
+					len := ocrLines.MaxIndex()
+					if(len > 1) {
+						playerName := ocrLines[1]
+						playerID := RegExReplace(ocrLines[2], "[^0-9]", "")
+						; playerID := SubStr(ocrLines[2], 1, 19)
+						username := playerName
+					}
+			}
+		} catch e {
+			LogToFile("Failed to OCR the friend code: " . e.message, "BC.txt")
+		}
+	}
+
 	logMessage := star . " found by " . username . " (" . friendCode . ") in instance: " . scriptName . " (" . packs . " packs)\nFile name: " . accountFile . "\nBacking up to the Accounts\\SpecificCards folder and continuing..."
 	CreateStatusMessage(logMessage)
 	LogToFile(logMessage, "GPlog.txt")
@@ -1385,7 +1405,7 @@ FindGodPack() {
 }
 
 GodPackFound(validity) {
-	global scriptName, DeadCheck, ocrLanguage
+	global scriptName, DeadCheck, ocrLanguage, injectMethod
 
 	if(validity = "Valid") {
 		IniWrite, 0, %A_ScriptDir%\%scriptName%.ini, UserSettings, DeadCheck
@@ -1412,7 +1432,7 @@ GodPackFound(validity) {
 	Sleep, 8000
 	fcScreenshot := Screenshot("FRIENDCODE")
 
-	; BallCity 2025.02.20 - If we're doing the inject method, try to OCR our Username
+	; If we're doing the inject method, try to OCR our Username
 	try {
 		if(injectMethod && IsFunc("ocr_from_file"))
 		{

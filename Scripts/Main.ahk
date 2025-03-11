@@ -1033,14 +1033,11 @@ IsLeapYear(year) {
 ; friendCode := cropAndOcr("Main", 336, 106, 188, 20, True, True, blowUp)
 cropAndOcr(winTitle := "Main", x := 0, y := 0, width := 200, height := 200, moveWindow := True, revertWindow := True, blowupPercent := 200)
 {
-	global ocrLanguage
-
+	global ocrLanguage 
+	
     if(moveWindow) {
-        if(revertWindow) {
-            WinGetPos, srcX, srcY, srcW, srcH, %winTitle%
-        }
-
-        WinMove, %winTitle%, , 0, 0, 550, 1015
+		WinGetPos, srcX, srcY, srcW, srcH, %winTitle%
+        WinMove, %winTitle%, , srcX, srcY, 550, 1015
         Delay(1)
     }
     hwnd := WinExist(winTitle)
