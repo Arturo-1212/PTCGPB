@@ -3,9 +3,9 @@ version = Arturos PTCGP Bot
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
 
-githubUser := "Arturo-1212"
+githubUser := "papawolf42"
 repoName := "PTCGPB"
-localVersion := "v6.3.17"
+localVersion := "v6.3.17b3"
 scriptFolder := A_ScriptDir
 zipPath := A_Temp . "\update.zip"
 extractPath := A_Temp . "\update"
@@ -81,6 +81,7 @@ IniRead, Charizard, Settings.ini, UserSettings, Charizard, 0
 IniRead, Mewtwo, Settings.ini, UserSettings, Mewtwo, 0
 IniRead, slowMotion, Settings.ini, UserSettings, slowMotion, 0
 IniRead, ocrLanguage, Settings.ini, UserSettings, ocrLanguage, en
+IniRead, clientLanguage, Settings.ini, UserSettings, clientLanguage, en
 IniRead, autoLaunchMonitor, Settings.ini, UserSettings, autoLaunchMonitor, 1
 IniRead, mainIdsURL, Settings.ini, UserSettings, mainIdsURL, ""
 IniRead, vipIdsURL, Settings.ini, UserSettings, vipIdsURL, ""
@@ -141,14 +142,15 @@ Gui, Add, Edit, vfolderPath w200 x20 y365 h20 -E0x200 Background2A2A2A cWhite, %
 ;else
 	;Gui, Add, Checkbox, vslowMotion x270 y375, Base Game Compatibility
 
-Gui, Add, Text, x20 y395 c4169E1, Language Pack:
+Gui, Add, Text, x20 y395 c4169E1, OCR:
 
 ; ========== Language Pack list ==========
-languageList := "en|zh|es|de|fr|ja|ru|pt|ko|it|tr|pl|nl|sv|ar|uk|id|vi|th|he|cs|no|da|fi|hu|el|zh-TW"
+ocrLanguageList := "en|zh|es|de|fr|ja|ru|pt|ko|it|tr|pl|nl|sv|ar|uk|id|vi|th|he|cs|no|da|fi|hu|el|zh-TW"
 
 if (ocrLanguage != "")
 {
-    Loop, Parse, languageList, |
+	index := 0
+    Loop, Parse, ocrLanguageList, |
     {
         index++
         if (A_LoopField = ocrLanguage)
@@ -159,8 +161,29 @@ if (ocrLanguage != "")
     }
 }
 
+Gui, Add, DropDownList, vocrLanguage choose%defaultOcrLang% x55 y390 w50 Background2A2A2A cWhite, %ocrLanguageList%
 
-Gui, Add, DropDownList, vocrLanguage choose%defaultOcrLang% x120 y390 w50 Background2A2A2A cWhite, %languageList%
+Gui, Add, Text, x120 y395 c4169E1, Client:
+
+; ========== Client Language Pack list ==========
+clientLanguageList := "en|es|fr|de|it|pt|jp|ko|cn"
+
+if (clientLanguage != "")
+{
+	index := 0
+    Loop, Parse, clientLanguageList, |
+    {
+        index++
+        if (A_LoopField = clientLanguage)
+        {
+            defaultClientLang := index
+            break
+        }
+    }
+}
+
+Gui, Add, DropDownList, vclientLanguage choose%defaultClientLang% x165 y390 w50 Background2A2A2A cWhite, %clientLanguageList%
+
 Gui, Add, Text, x20 y425 c4169E1, Launch All Mumu Delay:
 Gui, Add, Edit, vinstanceLaunchDelay w50 x175 y425 h20 -E0x200 Background2A2A2A cWhite Center, %instanceLaunchDelay%
 Gui, Add, Checkbox, % (autoLaunchMonitor ? "Checked" : "") " vautoLaunchMonitor x35 y455 cWhite", Auto Launch Monitor
@@ -399,6 +422,7 @@ Start:
 	IniWrite, %slowMotion%, Settings.ini, UserSettings, slowMotion
 
 	IniWrite, %ocrLanguage%, Settings.ini, UserSettings, ocrLanguage
+	IniWrite, %clientLanguage%, Settings.ini, UserSettings, clientLanguage
 	IniWrite, %mainIdsURL%, Settings.ini, UserSettings, mainIdsURL
 	IniWrite, %vipIdsURL%, Settings.ini, UserSettings, vipIdsURL
 	IniWrite, %autoLaunchMonitor%, Settings.ini, UserSettings, autoLaunchMonitor
