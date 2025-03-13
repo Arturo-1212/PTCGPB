@@ -239,7 +239,8 @@ if(DeadCheck==1) {
 		if(!injectMethod || !loadedAccount)
 			DoTutorial()
 
-		if(deleteMethod = "5 Pack" || packMethod)
+		;	SquallTCGP 2025.03.12 - 	Adding the delete method 5 Pack (Fast) to the wonder pick check.
+		if(deleteMethod = "5 Pack" || deleteMethod = "5 Pack (Fast)" || packMethod)
 			if(!loadedAccount)
 				wonderPicked := DoWonderPick()
 
@@ -258,7 +259,18 @@ if(DeadCheck==1) {
 			HourglassOpening() ;deletemethod check in here at the start
 
 		if(wonderPicked) {
-			friendsAdded := AddFriends(true)
+			
+			;	SquallTCGP 2025.03.12 - 	Added a check to not add friends if the delete method is 5 Pack (Fast). When using this method (5 Pack (Fast)), 
+			;															it goes to the social menu and clicks the home button to exit (instead of opening all packs directly)
+			; 														just to get around the checking for a level after opening a pack. This change is made based on the 
+			;															5p-no delete community mod created by DietPepperPhD in the discord server.
+
+			if(deleteMethod != "5 Pack (Fast)") {
+				friendsAdded := AddFriends(true)
+			} else {
+				FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
+				FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500)
+			}
 			SelectPack("HGPack")
 			PackOpening()
 			if(packMethod) {
@@ -1319,7 +1331,7 @@ FindBorders(prefix) {
 }
 
 FindGodPack() {
-	global winTitle, discordUserId, Delay, username, packs, minStars, scriptName, DeadCheck
+	global winTitle, discordUserId, Delay, username, packs, minStars, scriptName, DeadCheck, deleteMethod
 	gpFound := false
 	invalidGP := false
 	searchVariation := 5
@@ -1331,8 +1343,15 @@ FindGodPack() {
 	}
 	borderCoords := [[20, 284, 90, 286]
 		,[103, 284, 173, 286]]
-	if(packs = 3)
-		packs := 0
+
+	;	SquallTCGP 2025.03.12 - 	Just checking the packs count and setting them to 0 if it's number of packs is 3. 
+	;															This applies to any Delete Method except 5 Pack (Fast). This change is made based 
+	;															on the 5p-no delete community mod created by DietPepperPhD in the discord server.
+	if(deleteMethod != "5 Pack (Fast)") {
+		if(packs = 3)
+			packs := 0
+	}
+
 	Loop {
 		normalBorders := false
 		pBitmap := from_window(WinExist(winTitle))
