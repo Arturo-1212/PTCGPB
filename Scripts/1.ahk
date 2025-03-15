@@ -16,7 +16,7 @@ CoordMode, Pixel, Screen
 DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, deleteMethod, packs, FriendID, friendIDs, Instances, username, friendCode, stopToggle, friended, runMain, showStatus, injectMethod, packMethod, loadDir, loadedAccount, nukeAccount, TrainerCheck, FullArtCheck, RainbowCheck, dateChange, foundGP, foundTS, friendsAdded, minStars, PseudoGodPack, Palkia, Dialga, Mew, Pikachu, Charizard, Mewtwo, packArray, CrownCheck, ImmersiveCheck, slowMotion, screenShot, accountFile, invalid, starCount, gpFound, foundTS
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, deleteMethod, packs, FriendID, friendIDs, Instances, username, friendCode, profilePic, stopToggle, friended, runMain, showStatus, injectMethod, packMethod, loadDir, loadedAccount, nukeAccount, TrainerCheck, FullArtCheck, RainbowCheck, dateChange, foundGP, foundTS, friendsAdded, minStars, PseudoGodPack, Palkia, Dialga, Mew, Pikachu, Charizard, Mewtwo, packArray, CrownCheck, ImmersiveCheck, slowMotion, screenShot, accountFile, invalid, starCount, gpFound, foundTS
 global DeadCheck
 
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -500,6 +500,7 @@ AddFriends(renew := false, getFC := false) {
 			if(getFC) {
 				Delay(3)
 				adbClick(210, 342)
+				getProfilePic()
 				Delay(3)
 				friendCode := Clipboard
 				return friendCode
@@ -1286,7 +1287,7 @@ FoundStars(star) {
 
 	if(star = "Crown" || star = "Immersive")
 		RemoveFriends()
-	logMessage := star . " found by " . username . " (" . friendCode . ") in instance: " . scriptName . " (" . packs . " packs)\nFile name: " . accountFile . "\nBacking up to the Accounts\\SpecificCards folder and continuing..."
+	logMessage := star . " found by " . username . " (" . friendCode . ")  " . profilePic . " in instance: " . scriptName . " (" . packs . " packs)\nFile name: " . accountFile . "\nBacking up to the Accounts\\SpecificCards folder and continuing..."
 	CreateStatusMessage(logMessage)
 	LogToFile(logMessage, "GPlog.txt")
 	LogToDiscord(logMessage, screenShot, discordUserId, "", fcScreenshot)
@@ -1430,7 +1431,7 @@ GodPackFound(validity) {
 		LogToFile("Failed to OCR the friend code: " . e.message, "BC.txt")
 	}
 
-	logMessage := Interjection . "\n" . username . " (" . friendCode . ")\n[" . starCount . "/5][" . packs . "P] " . invalid . " God pack found in instance: " . scriptName . "\nFile name: " . accountFile . "\nBacking up to the Accounts\\GodPacks folder and continuing..."
+	logMessage := Interjection . "\n" . username . " (" . friendCode . ")  " . profilePic . "\n[" . starCount . "/5][" . packs . "P] " . invalid . " God pack found in instance: " . scriptName . "\nFile name: " . accountFile . "\nBacking up to the Accounts\\GodPacks folder and continuing..."
 	LogToFile(logMessage, godPackLog)
 	;Run, http://google.com, , Hide ;Remove the ; at the start of the line and replace your url if you want to trigger a link when finding a god pack.
 
@@ -2860,6 +2861,42 @@ getFriendCode() {
 	friendCode := AddFriends(false, true)
 
 	return friendCode
+}
+
+getProfilePic() {
+	static pfps
+
+	if !pfps {
+		; new account profile pic data
+		pfps := [{"name": "Pikachu",  "emoji": "<:pikachu:1350259152336715856>",  "pixel": 0xFF8C6BAB}
+				,{"name": "Snorlax",  "emoji": "<:snorlax:1350259140928475197>",  "pixel": 0xFF658797}
+				,{"name": "Eevee",    "emoji": "<:eevee:1350259145034694798>",    "pixel": 0xFFE3D800}
+				,{"name": "Erika",    "emoji": "<:erika:1350259142526242828>",    "pixel": 0xFFAE4567}
+				,{"name": "Giovanni", "emoji": "<:giovanni:1350259147421257778>", "pixel": 0xFFF0C08E}
+				,{"name": "Slowpoke", "emoji": "<:slowpoke:1350259149723668600>", "pixel": 0xFFF7B4C9}]
+
+		; replace search pixels colours with their bitmaps
+		for i, pfp in pfps {
+			pBitmap := Gdip_CreateBitmap(1, 1)
+			pGraphics := Gdip_GraphicsFromImage(pBitmap)
+			Gdip_GraphicsClear(pGraphics, pfp["pixel"])
+			Gdip_DeleteGraphics(pGraphics)
+			pfp["pixel"] := pBitmap
+		}
+	}
+
+	; search for each profile pic and set global profilePic
+	profilePic := "??"  ; default value
+	pBitmap := from_window(WinExist(winTitle))
+	for i, pfp in pfps {
+		; search 10x10 square in the top middle of the pfp for unique colours
+		if (Gdip_ImageSearch(pBitmap, pfp["pixel"], , 133, 191, 143, 201, 20, , , 5) = 5) {
+			profilePic := pfp["emoji"]
+			break
+		}
+	}
+	Gdip_DisposeImage(pBitmap)
+	return profilePic
 }
 
 createAccountList(instance) {
