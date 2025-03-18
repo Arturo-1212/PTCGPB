@@ -621,7 +621,7 @@ Start:
 
 
 
-				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus
+				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus . "\nVersion: " . localVersion
 				discMessage .= typeMsg
 				discMessage .= selectMsg
 				if(heartBeatName)
