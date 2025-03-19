@@ -180,10 +180,14 @@ Loop {
 					done := true
 					break
 				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0, failSafeTime)) {
+					if (GPTest)
+						break
 					Sleep, %Delay%
 					adbClick(210, 210)
 					Sleep, 1000
 				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0, failSafeTime)) {
+					if (GPTest)
+						break
 					adbClick(245, 210)
 				} else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0, failSafeTime)) {
 					done := true
@@ -690,6 +694,8 @@ ToggleTestScript()
 		triggerTestNeeded := true
 		testStartTime := A_TickCount
 		CreateStatusMessage("In GP Test Mode")
+		StartSkipTime := A_TickCount ;reset stuck timers
+		failSafe := A_TickCount
 	}
 	else {
 		GPTest := false
@@ -1101,28 +1107,15 @@ HoytdjTestScript() {
 }
 
 RemoveNonVipFriends() {
-	global GPTest, vipIdsURL
+	global GPTest, vipIdsURL, failSafe
 	failSafe := A_TickCount
 	failSafeTime := 0
+	; Get us to the Social screen. Won't be super resilient but should be more consistent for most cases.
 	Loop {
 		adbClick(143, 518)
 		if(FindOrLoseImage(120, 500, 155, 530, , "Social", 0, failSafeTime))
 			break
-		else if(FindOrLoseImage(175, 165, 255, 235, , "Hourglass3", 0)) {
-			Delay(3)
-			adbClick(146, 441) ; 146 440
-			Delay(3)
-			adbClick(146, 441)
-			Delay(3)
-			adbClick(146, 441)
-			Delay(3)
-
-			FindImageAndClick(98, 184, 151, 224, , "Hourglass1", 168, 438, 500, 5) ;stop at hourglasses tutorial 2
-			Delay(1)
-
-			adbClick(203, 436) ; 203 436
-		}
-		Sleep, 500
+		Delay(5)
 		failSafeTime := (A_TickCount - failSafe) // 1000
 		CreateStatusMessage("In failsafe for Social. " . failSafeTime "/90 seconds")
 	}
@@ -1296,7 +1289,7 @@ ParseFriendCode(ByRef friendCode) {
 	failSafe := A_TickCount
 	failSafeTime := 0
 	parseFriendCodeResult := False
-	blowUp := [200, 200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
+	blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
 	Loop {
 		friendCode := GetFriendCode(blowUp[A_Index])
 		if (RegExMatch(friendCode, "^\d{14,17}$")) {
@@ -1304,7 +1297,7 @@ ParseFriendCode(ByRef friendCode) {
 			break
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
-		if (failSafeTime > 3) {
+		if (failSafeTime > 4) {
 			parseFriendCodeResult := False
 			break
 		}
@@ -1316,7 +1309,7 @@ ParseFriendName(ByRef friendName) {
 	failSafe := A_TickCount
 	failSafeTime := 0
 	parseFriendNameResult := False
-	blowUp := [200, 200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
+	blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
 	Loop {
 		friendName := GetFriendName(blowUp[A_Index])
 		if (RegExMatch(friendName, "^[a-zA-Z0-9]{5,20}$")) {
@@ -1324,7 +1317,7 @@ ParseFriendName(ByRef friendName) {
 			break
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
-		if (failSafeTime > 2) {
+		if (failSafeTime > 4) {
 			parseFriendNameResult := False
 			break
 		}

@@ -20,55 +20,53 @@ if !FileExist(mumuFolder){
 	MsgBox, 16, , Double check your folder path! It should be the one that contains the MuMuPlayer 12 folder! `nDefault is just C:\Program Files\Netease
 	ExitApp
 }
-Loop {
-    ; Loop through each instance, check if it's started, and start it if it's not
-    launched := 0
 
-    nowEpoch := A_NowUTC
-    EnvSub, nowEpoch, 1970, seconds
+; Loop through each instance, check if it's started, and start it if it's not
+launched := 0
 
-    Loop %Instances% {
-        instanceNum := Format("{:u}", A_Index)
+nowEpoch := A_NowUTC
+EnvSub, nowEpoch, 1970, seconds
 
-        IniRead, LastEndEpoch, %A_ScriptDir%\Scripts\%instanceNum%.ini, Metrics, LastEndEpoch, 0
-        secondsSinceLastEnd := nowEpoch - LastEndEpoch
-        if(LastEndEpoch > 0 && secondsSinceLastEnd > (15 * 60))
-        {
-            ; msgbox, Killing Instance %instanceNum%! Last Run Completed %secondsSinceLastEnd% Seconds Ago
-            msg := "Killing Instance " . instanceNum . "! Last Run Completed " . secondsSinceLastEnd . " Seconds Ago"
-            LogToFile(msg, "Monitor.txt")
-            
-            scriptName := instanceNum . ".ahk"
+Loop %Instances% {
+    instanceNum := Format("{:u}", A_Index)
 
-            killedAHK := killAHK(scriptName)
-            killedInstance := killInstance(instanceNum)
-            Sleep, 3000
-
-            cntAHK := checkAHK(scriptName)            
-            pID := checkInstance(instanceNum)
-            if not pID && not cntAHK {
-                ; Change the last end date to now so that we don't keep trying to restart this beast
-                IniWrite, %nowEpoch%, %A_ScriptDir%\Scripts\%instanceNum%.ini, Metrics, LastEndEpoch
-
-                launchInstance(instanceNum)
+    IniRead, LastEndEpoch, %A_ScriptDir%\Scripts\%instanceNum%.ini, Metrics, LastEndEpoch, 0
+    secondsSinceLastEnd := nowEpoch - LastEndEpoch
+    if(LastEndEpoch > 0 && secondsSinceLastEnd > (15 * 60))
+    {
+        ; msgbox, Killing Instance %instanceNum%! Last Run Completed %secondsSinceLastEnd% Seconds Ago
+        msg := "Killing Instance " . instanceNum . "! Last Run Completed " . secondsSinceLastEnd . " Seconds Ago"
+        LogToFile(msg, "Monitor.txt")
         
-                sleepTime := instanceLaunchDelay * 1000
-                Sleep, % sleepTime
-                launched := launched + 1
+        scriptName := instanceNum . ".ahk"
 
-                Sleep, %waitAfterBulkLaunch%
+        killedAHK := killAHK(scriptName)
+        killedInstance := killInstance(instanceNum)
+        Sleep, 3000
 
-                ;Command := "Scripts\" . scriptName
-                ;Run, %Command%
-			    scriptPath = %A_ScriptDir%\Scripts\%scriptName%
-			    Run "%A_AhkPath%" /restart "%scriptPath%"
-            }
+        cntAHK := checkAHK(scriptName)            
+        pID := checkInstance(instanceNum)
+        if not pID && not cntAHK {
+            ; Change the last end date to now so that we don't keep trying to restart this beast
+            IniWrite, %nowEpoch%, %A_ScriptDir%\Scripts\%instanceNum%.ini, Metrics, LastEndEpoch
+
+            launchInstance(instanceNum)
+    
+            sleepTime := instanceLaunchDelay * 1000
+            Sleep, % sleepTime
+            launched := launched + 1
+
+            Sleep, %waitAfterBulkLaunch%
+
+            ;Command := "Scripts\" . scriptName
+            ;Run, %Command%
+            scriptPath = %A_ScriptDir%\Scripts\%scriptName%
+            Run "%A_AhkPath%" /restart "%scriptPath%"
         }
     }
-
-    ; Check for dead instances every 30 seconds
-    Sleep, 30000
 }
+
+ExitApp
 
 LogToFile(message, logFile) {
 	logFile := A_ScriptDir . "\Logs\" . logFile
