@@ -135,7 +135,16 @@ Loop, %MonitorCount% {
     MonitorOptions .= (A_Index > 1 ? "|" : "") "" A_Index ": (" MonitorRight - MonitorLeft "x" MonitorBottom - MonitorTop ")"
 }
 SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
-Gui, Add, DropDownList, x20 y315 w200 vSelectedMonitorIndex Choose%SelectedMonitorIndex% Background2A2A2A cWhite, %MonitorOptions%
+Gui, Add, DropDownList, x20 y315 w130 vSelectedMonitorIndex Choose%SelectedMonitorIndex% Background2A2A2A cWhite, %MonitorOptions%
+Gui, Add, Text, x160 y295 c4169E1, Scale:
+if (defaultLanguage = "Scale125") {
+    defaultLang := 1
+    scaleParam := 277
+} else if (defaultLanguage = "Scale100") {
+    defaultLang := 2  
+    scaleParam := 287
+}
+Gui, Add, DropDownList, x160 y315 w75 vdefaultLanguage choose%defaultLang% Background2A2A2A cWhite, Scale125|Scale100
 Gui, Add, Text, x20 y345 c4169E1, Folder Path:
 Gui, Add, Edit, vfolderPath w200 x20 y365 h20 -E0x200 Background2A2A2A cWhite, %folderPath%
 
@@ -291,14 +300,14 @@ Gui, Add, Edit, vmainIdsURL w460 x270 y425 h20 -E0x200 Background2A2A2A cWhite, 
 Gui, Add, Text, x270 y445 cWhite, vip_ids.txt (GP Test Mode) API:
 Gui, Add, Edit, vvipIdsURL w460 x270 y465 h20 -E0x200 Background2A2A2A cWhite, %vipIdsURL%
 
-
-if (defaultLanguage = "Scale125") {
-	defaultLang := 1
-	scaleParam := 277
-} else if (defaultLanguage = "Scale100") {
-	defaultLang := 2
-	scaleParam := 287
-}
+;move to line 138
+; if (defaultLanguage = "Scale125") {
+; 	defaultLang := 1
+; 	scaleParam := 277
+; } else if (defaultLanguage = "Scale100") {
+; 	defaultLang := 2
+; 	scaleParam := 287
+; }
 
 ;Gui, Add, Text, x270 y400 cWhite, Scale:
 ;Gui, Add, DropDownList, x310 y395 w145 vdefaultLanguage choose%defaultLang%, Scale125
