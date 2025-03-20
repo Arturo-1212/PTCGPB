@@ -488,6 +488,9 @@ AddFriends(renew := false, getFC := false) {
 					clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
 					if(clickButton) {
 						StringSplit, pos, clickButton, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 				}
@@ -694,6 +697,11 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 			Y1 := 220
 			X2 := 230
 			Y2 := 260
+		} else if (imageName = "Erika") { ; 100% fix for Erika avatar
+			X1 := 149
+			Y1 := 153
+			X2 := 159
+			Y2 := 162
 		}
 	}
 	;bboxAndPause(X1, Y1, X2, Y2)
@@ -725,6 +733,9 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		pNeedle := GetNeedle(Path)
 		; ImageSearch within the region
 		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 331, 50, 449, searchVariation)
+		if (scaleParam = 287) {
+			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 325, 55, 445, searchVariation)
+		}
 		if (vRet = 1) {
 			adbShell.StdIn.WriteLine("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
 			waitadb()
@@ -784,14 +795,51 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			Y1 := 0
 		}
 
+		clicky += 2 ; clicky offset
 		if (imageName = "Platin") { ; can't do text so purple box
 			X1 := 141
 			Y1 := 189
 			X2 := 208
 			Y2 := 224
 		} else if (imageName = "Opening") { ; Opening click (to skip cards) can't click on the immersive skip with 239, 497
+			X1 := 10
+			Y1 := 80
+			X2 := 50
+			Y2 := 115
 			clickx := 250
 			clicky := 505
+		} else if (imageName = "SelectExpansion") { ; SelectExpansion
+			X1 := 120
+			Y1 := 135
+			X2 := 161
+			Y2 := 145
+		} else if (imageName = "CountrySelect2") { ; SelectExpansion
+			X1 := 120
+			Y1 := 130
+			X2 := 174
+			Y2 := 155
+		} else if (imageName = "ChosenTag") { ; ChangeTag GP found
+			X1 := 218
+			Y1 := 307
+			X2 := 231
+			Y2 := 312
+		} else if (imageName = "Badge") { ; ChangeTag GP found
+			X1 := 48
+			Y1 := 204
+			X2 := 72
+			Y2 := 230
+		} else if (imageName = "ChooseErika") { ; ChangeTag GP found
+			X1 := 150
+			Y1 := 286
+			X2 := 155
+			Y2 := 291
+		} else if (imageName = "ChooseEevee") { ; Change Eevee Avatar
+			X1 := 157
+			Y1 := 195
+			X2 := 162
+			Y2 := 200
+			clickx := 147
+			clicky := 207
 		}
 	}
 
@@ -829,6 +877,8 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			ElapsedTime := (A_TickCount - StartSkipTime) // 1000
 			if(imageName = "Country")
 				FSTime := 90
+			else if(imageName = "Proceed") ; Decrease time for Marowak
+				FSTime := 8
 			else
 				FSTime := 45
 			if(!skip) {
@@ -870,6 +920,9 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			pNeedle := GetNeedle(Path)
 			; ImageSearch within the region
 			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 331, 50, 449, searchVariation)
+			if (scaleParam = 287) {
+				vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 325, 55, 445, searchVariation)
+			}
 			if (vRet = 1) {
 				adbShell.StdIn.WriteLine("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
 				waitadb()
@@ -915,6 +968,9 @@ LevelUp() {
 	if(Leveled) {
 		clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime)
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 	}
 	Delay(1)
@@ -1052,6 +1108,9 @@ menuDelete() {
 				clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 				if(clickImage) {
 					StringSplit, pos, clickImage, `,  ; Split at ", "
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
 					adbClick(pos1, pos2)
 				}
 				else {
@@ -1068,6 +1127,9 @@ menuDelete() {
 			Sleep,%Delay%
 		}
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 		break
 		failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1114,6 +1176,9 @@ menuDeleteStart() {
 					clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 					if(clickImage) {
 						StringSplit, pos, clickImage, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 					else {
@@ -1130,6 +1195,9 @@ menuDeleteStart() {
 				Sleep,%Delay%
 			}
 			StringSplit, pos, clickButton, `,  ; Split at ", "
+			if (scaleParam = 287) {
+				pos2 += 5
+			}
 			adbClick(pos1, pos2)
 			break
 			failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1323,6 +1391,15 @@ FindBorders(prefix) {
 		,[196, 284, 249, 286]
 		,[70, 399, 123, 401]
 		,[155, 399, 208, 401]]
+		
+	; 100% scale changes
+	if (scaleParam = 287) {
+		borderCoords := [[30, 277, 85, 281]
+		,[112, 277, 167, 281]
+		,[195, 277, 250, 281]
+		,[70, 394, 125, 398]
+		,[156, 394, 211, 398]]
+	}
 	pBitmap := from_window(WinExist(winTitle))
 	; imagePath := "C:\Users\Arturo\Desktop\PTCGP\GPs\" . Clipboard . ".png"
 	; pBitmap := Gdip_CreateBitmapFromFile(imagePath)
@@ -1352,6 +1429,12 @@ FindGodPack() {
 	}
 	borderCoords := [[20, 284, 90, 286]
 		,[103, 284, 173, 286]]
+		
+	; Change borderCoords if scaleParam is 287 for 100%
+	if (scaleParam = 287) {
+		borderCoords := [[21, 278, 91, 280]
+			,[105, 278, 175, 280]]
+	}
 
 	;	SquallTCGP 2025.03.12 - 	Just checking the packs count and setting them to 0 if it's number of packs is 3. 
 	;															This applies to any Delete Method except 5 Pack (Fast). This change is made based 
@@ -1719,6 +1802,10 @@ Screenshot(filename := "Valid") {
 	screenshotFile := screenshotsDir "\" . A_Now . "_" . winTitle . "_" . filename . "_" . packs . "_packs.png"
 	pBitmapW := from_window(WinExist(winTitle))
 	pBitmap := Gdip_CloneBitmapArea(pBitmapW, 18, 175, 240, 227)
+	;scale 100%
+	if (scaleParam = 287) {
+	pBitmap := Gdip_CloneBitmapArea(pBitmapW, 17, 168, 245, 230)
+	}
 	Gdip_DisposeImage(pBitmapW)
 
 	Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
@@ -2802,6 +2889,9 @@ HourglassOpening(HG := false) {
 		clickButton := FindOrLoseImage(145, 440, 258, 480, 80, "Button", 0, failSafeTime)
 		if(clickButton) {
 			StringSplit, pos, clickButton, `,  ; Split at ", "
+			if (scaleParam = 287) {
+				pos2 += 5
+			}
 			adbClick(pos1, pos2)
 		}
 		failSafeTime := (A_TickCount - failSafe) // 1000
@@ -2938,6 +3028,10 @@ DoWonderPick() {
 			clickButton := FindOrLoseImage(100, 367, 190, 480, 100, "Button", 0, failSafeTime)
 			if(clickButton) {
 				StringSplit, pos, clickButton, `,  ; Split at ", "
+					; Adjust pos2 if scaleParam is 287 for 100%
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
 					adbClick(pos1, pos2)
 				Delay(3)
 			}
