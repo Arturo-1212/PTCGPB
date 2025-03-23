@@ -3000,6 +3000,9 @@ DoWonderPick() {
 		CreateStatusMessage("In failsafe for Shop. " . failSafeTime "/45 seconds")
 		LogToFile("In failsafe for Shop. " . failSafeTime "/45 seconds")
 	}
+	; may input extra ESC and stuck at exit game
+	if(!FindImageAndClick(2, 85, 34, 120, , "Missions", 261, 478, 500, 15))
+		FindImageAndClick(191, 393, 211, 411, , "Shop", 74, 353) ;click until at main menu
 	FindImageAndClick(2, 85, 34, 120, , "Missions", 261, 478, 500)
 	;FindImageAndClick(130, 170, 170, 205, , "WPMission", 150, 286, 1000)
 	FindImageAndClick(120, 185, 150, 215, , "FirstMission", 150, 286, 1000)
@@ -3014,7 +3017,7 @@ DoWonderPick() {
 			adbClick(110, 369)
 		}
 		else if(FindOrLoseImage(191, 393, 211, 411, , "Shop", 1, failSafeTime))
-			adbInputEvent("111") ;send ESC
+			adbClick(139, 492)
 		else
 			break
 		failSafeTime := (A_TickCount - failSafe) // 1000
