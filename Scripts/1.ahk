@@ -80,6 +80,8 @@ IniRead, minStarsA2Palkia, %A_ScriptDir%\..\Settings.ini, UserSettings, minStars
 IniRead, minStarsA2a, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2a, 0
 IniRead, minStarsA2b, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2b, 0
 
+IniRead, accountName, %A_ScriptDir%\..\Settings.ini, UserSettings, accountName, hiii
+
 pokemonList := ["Palkia", "Dialga", "Mew", "Pikachu", "Charizard", "Mewtwo", "Arceus", "Shining"]
 
 packArray := []  ; Initialize an empty array
@@ -2367,6 +2369,7 @@ Delay(n) {
 }
 
 DoTutorial() {
+	global accountName
 	FindImageAndClick(105, 396, 121, 406, , "Country", 143, 370) ;select month and year and click
 
 	Delay(1)
@@ -2548,15 +2551,9 @@ DoTutorial() {
 	failSafe := A_TickCount
 	failSafeTime := 0
 	Loop {
-		fileName := A_ScriptDir . "\..\usernames.txt"
-		if(FileExist(fileName))
-			name := ReadFile("usernames")
-		else
-			name := ReadFile("usernames_default")
-
-		Random, randomIndex, 1, name.MaxIndex()
-		username := name[randomIndex]
-		username := SubStr(username, 1, 14)  ;max character limit
+		Random, randomNum, 1000, 4999
+		username := accountName . "-" . randomNum
+		username := SubStr(username, 1, 14)
 		adbInput(username)
 		if(FindImageAndClick(121, 490, 161, 520, , "Return", 185, 372, , 10)) ;click through until return button on open pack
 			break
