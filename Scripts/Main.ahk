@@ -20,7 +20,7 @@ DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
-global triggerTestNeeded, testStartTime, firstRun, minStars
+global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -52,6 +52,7 @@ IniRead, vipIdsURL, %A_ScriptDir%\..\Settings.ini, UserSettings, vipIdsURL
 IniRead, ocrLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, ocrLanguage, en
 IniRead, clientLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, clientLanguage, en
 IniRead, minStars, %A_ScriptDir%\..\Settings.ini, UserSettings, minStars, 0
+IniRead, minStarsA2b, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2b, 0
 
 adbPort := findAdbPorts(folderPath)
 
@@ -1381,6 +1382,7 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 		friendCode := ""
 		friendName := ""
 		twoStarCount := ""
+		packName := ""
 
 		if InStr(line, " | ") {
 			parts := StrSplit(line, " | ") ; Split by " | "
@@ -1388,6 +1390,7 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 			; Check for ID and Name parts
 			friendCode := Trim(parts[1])
 			friendName := Trim(parts[2])
+			packName := Trim(parts[4])
 			if (friendCode != "" && friendName != "")
 				includesIdsAndNames := true
 
@@ -1398,7 +1401,10 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 		}
 
 		; Trim spaces and create a FriendAccount object
-		if (twoStarCount == "" || twoStarCount >= minStars) {
+		if (twoStarCount == "" 
+			|| (packName != "Shining" && twoStarCount >= minStars) 
+			|| (packName == "Shining" && twoStarCount >= minStarsA2b)  
+			|| (packName == "" && (twoStarCount >= minStars || twoStarCount >= minStarsA2b)) ) {
 			friend := new FriendAccount(friendCode, friendName)
 			friendList.Push(friend)  ; Add to array
 		}
