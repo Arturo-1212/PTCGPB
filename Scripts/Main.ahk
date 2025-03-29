@@ -20,7 +20,7 @@ DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
-global triggerTestNeeded, testStartTime, firstRun, minStars
+global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b, vipIdsURL
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -52,6 +52,7 @@ IniRead, vipIdsURL, %A_ScriptDir%\..\Settings.ini, UserSettings, vipIdsURL
 IniRead, ocrLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, ocrLanguage, en
 IniRead, clientLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, clientLanguage, en
 IniRead, minStars, %A_ScriptDir%\..\Settings.ini, UserSettings, minStars, 0
+IniRead, minStarsA2b, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2b, 0
 
 adbPort := findAdbPorts(folderPath)
 
@@ -92,17 +93,20 @@ Loop {
 		OwnerWND := WinExist(winTitle)
 		x4 := x + 5
 		y4 := y + 44
+		buttonWidth := 35
+		if (scaleParam = 287)
+			buttonWidth := buttonWidth + 6
 
 		Gui, Toolbar: New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption +LastFound
 		Gui, Toolbar: Default
 		Gui, Toolbar: Margin, 4, 4  ; Set margin for the GUI
 		Gui, Toolbar: Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
-		Gui, Toolbar: Add, Button, x0 y0 w35 h25 gReloadScript, Reload  (Shift+F5)
-		Gui, Toolbar: Add, Button, x35 y0 w35 h25 gPauseScript, Pause (Shift+F6)
-		Gui, Toolbar: Add, Button, x70 y0 w35 h25 gResumeScript, Resume (Shift+F6)
-		Gui, Toolbar: Add, Button, x105 y0 w35 h25 gStopScript, Stop (Shift+F7)
-		Gui, Toolbar: Add, Button, x140 y0 w35 h25 gShowStatusMessages, Status (Shift+F8)
-		Gui, Toolbar: Add, Button, x175 y0 w35 h25 gTestScript, GP Test (Shift+F9) ; hoytdj Add
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 0) . " y0 w" . buttonWidth . " h25 gReloadScript", Reload  (Shift+F5)
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 1) . " y0 w" . buttonWidth . " h25 gPauseScript", Pause (Shift+F6)
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 2) . " y0 w" . buttonWidth . " h25 gResumeScript", Resume (Shift+F6)
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 3) . " y0 w" . buttonWidth . " h25 gStopScript", Stop (Shift+F7)
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 4) . " y0 w" . buttonWidth . " h25 gShowStatusMessages", Status (Shift+F8)
+		Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 5) . " y0 w" . buttonWidth . " h25 gTestScript", GP Test (Shift+F9)
 		DllCall("SetWindowPos", "Ptr", WinExist(), "Ptr", 1  ; HWND_BOTTOM
 				, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE
 		Gui, Toolbar: Show, NoActivate x%x4% y%y4% AutoSize
@@ -158,10 +162,9 @@ if (scaleParam = 287) {
 99Rightx := 99Configs[clientLanguage].rightx
 
 Loop {
-	; hoytdj Add + 6
 	if (GPTest) {
 		if (triggerTestNeeded)
-			HoytdjTestScript()
+			GPTestScript()
 		Sleep, 1000
 		if (heartBeat && (Mod(A_Index, 60) = 0))
 			IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
@@ -453,7 +456,6 @@ resetWindows(){
 restartGameInstance(reason, RL := true){
 	global Delay, scriptName, adbShell, adbPath, adbPort
 	initializeAdbShell()
-	; hoytdj DEBUG
 	CreateStatusMessage("Restarting game reason: " reason)
 
 	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
@@ -1075,56 +1077,17 @@ IsLeapYear(year) {
 ; Screenshot()
 ; return
 
-; friendCount := cropAndOcr("Main", 234, 172, 90, 40, True, True, 200)
-; friendCode := cropAndOcr("Main", 336, 106, 188, 20, True, True, blowUp)
-cropAndOcr(winTitle := "Main", x := 0, y := 0, width := 200, height := 200, moveWindow := True, revertWindow := True, blowupPercent := 200)
-{
-	global ocrLanguage 
-	
-    if(moveWindow) {
-		WinGetPos, srcX, srcY, srcW, srcH, %winTitle%
-        WinMove, %winTitle%, , srcX, srcY, 550, 1015
-        Delay(1)
-    }
-    hwnd := WinExist(winTitle)
-    pBitmap := from_window(hwnd) ; Gdip_BitmapFromScreen( "hwnd: " . hwnd)
-    ;;;;Gdip_SaveBitmapToFile(pBitmap, "src.jpg")
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; ~~~ GP Test Mode Everying Below ~~~
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    pBitmap2 := Gdip_CropImage(pBitmap, x, y, width, height)
-    pBitmap3 := Gdip_ResizeBitmap(pBitmap2, blowupPercent, true)
-    hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap3)
-    ;;hBitmap2 := ToGrayscale(hBitmap)
-
-    ;;;; ret := SavePicture(hBitmap, "biggrey1.png")
-    pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
-    text := ocr(pIRandomAccessStream, ocrLanguage)
-    ;;;; MsgBox %text%
-
-    DeleteObject(hBitmap)
-    ;;DeleteObject(hBitmap2)
-    Gdip_DisposeImage(pBitmap)
-    Gdip_DisposeImage(pBitmap2)
-    Gdip_DisposeImage(pBitmap3)
-
-    if(revertWindow && moveWindow) {
-        WinMove, %winTitle%, , srcX, srcY, srcW, srcH
-        Delay(1)
-    }
-
-    return text
-}
-
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; ~~~ hoytdj Everying Below ~~~
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; TODO: Better isolate name spaces
-
-HoytdjTestScript() {
+GPTestScript() {
 	global triggerTestNeeded
 	triggerTestNeeded := false
 	RemoveNonVipFriends()
 }
 
+; Automation script for removing Non-VIP firends.
 RemoveNonVipFriends() {
 	global GPTest, vipIdsURL, failSafe
 	failSafe := A_TickCount
@@ -1148,7 +1111,7 @@ RemoveNonVipFriends() {
 	}
 
 	includesIdsAndNames := false
-	vipFriendsArray :=  ParseFriendAccounts(A_ScriptDir . "\..\vip_ids.txt", includesIdsAndNames)
+	vipFriendsArray :=  GetFriendAccountsFromFile(A_ScriptDir . "\..\vip_ids.txt", includesIdsAndNames)
 	if (!vipFriendsArray.MaxIndex()) {
 		CreateStatusMessage("No accounts found in vip_ids.txt. Aborting test...")
 		return
@@ -1163,12 +1126,7 @@ RemoveNonVipFriends() {
 			Delay(1)
 
 			; Get the friend account
-			friendCode := ""
-			friendName := ""
-			parseFriendCodeResult := ParseFriendCode(friendCode)
-			if (includesIdsAndNames)
-				parseFriendNameResult := ParseFriendName(friendName)
-			parseFriendResult := parseFriendCodeResult || (includesIdsAndNames && parseFriendNameResult)
+			parseFriendResult := ParseFriendInfo(friendCode, friendName, parseFriendCodeResult, parseFriendNameResult, includesIdsAndNames)
 			friendAccount := new FriendAccount(friendCode, friendName)
 
 			; Check if this is a repeat
@@ -1234,117 +1192,103 @@ RemoveNonVipFriends() {
 	}
 }
 
-
-
-GetFriendCode(blowupPercent := 200) {
-	global winTitle
-	ocrText := cropAndOcr(winTitle, 336, 106, 188, 20, True, True, blowupPercent)
-	friendCode := RegExReplace(Trim(ocrText, " `t`r`n"), "\D")
-	return friendCode
-}
-
-GetFriendName(blowupPercent := 200) {
-	global winTitle
-	ocrText := cropAndOcr(winTitle, 122, 483, 300, 33, True, True, blowupPercent)
-	friendName := Trim(ocrText, " `t`r`n")
-	return friendName
-}
-
-/*
-GetFriendCode() {
-	global winTitle, scaleParam
-	WinGetPos, x, y, w, h, %winTitle%
-	if (scaleParam = 287) {
-		x := x + 170
-		y := y + 63
-		w := 103
-		h := 20
-	}
-	else {
-		x := x + 169
-		y := y + 72
-		w := 100
-		h := 20
-	}
-	; Parse friendCode status from screen
-	; Expected output something like "1234-5678-1234-5678"
-	if (ScreenshotRegion(x, y, w, h, capturedScreenshot, "friendCode")) {
-		ocrText := GetTextFromImage(capturedScreenshot)
-		friendCode := RegExReplace(Trim(ocrText, " `t`r`n"), "\D")
-		;MsgBox % "OCR Text:`n" . ocrText . "`nClean Text:`n" . friendCode
-		return friendCode
-	}
-	return ""
-}
-
-GetFriendName() {
-	global winTitle, scaleParam
-	WinGetPos, x, y, w, h, %winTitle%
-	if (scaleParam = 287) {
-		x := x + 52
-		y := y + 255
-		w := 174
-		h := 28
-	}
-	else {
-		x := x + 51
-		y := y + 262
-		w := 174
-		h := 28
-	}
-
-	if (ScreenshotRegion(x, y, w, h, capturedScreenshot, "friendName")) {
-		ocrText := GetTextFromImage(capturedScreenshot)
-		friendName := Trim(ocrText, " `t`r`n")
-		;MsgBox % "OCR Text:`n" . ocrText . "`nClean Text:`n" . friendName
-		return friendName
-	}
-	return ""
-}
-*/
-
-
-ParseFriendCode(ByRef friendCode) {
+; Attempts to extract a friend accounts's code and name from the screen, by taking screenshot and running OCR on specific regions.
+ParseFriendInfo(ByRef friendCode, ByRef friendName, ByRef parseFriendCodeResult, ByRef parseFriendNameResult, includesIdsAndNames := False) {
+	; ------------------------------------------------------------------------------
+	; The function has a fail-safe mechanism to stop after 5 seconds.
+	;
+	; Parameters:
+	;   friendCode (ByRef String)          - A reference to store the extracted friend code.
+	;   friendName (ByRef String)          - A reference to store the extracted friend name.
+	;   parseFriendCodeResult (ByRef Bool) - A reference to store the result of parsing the friend code.
+	;   parseFriendNameResult (ByRef Bool) - A reference to store the result of parsing the friend name.
+	;   includesIdsAndNames (Bool)         - A flag indicating whether to parse the friend name, in addition to the code (default: False).
+	;
+	; Returns:
+	;   (Boolean) - True if EITHER the friend code OR name were successfully parsed, false otherwise.
+	; ------------------------------------------------------------------------------
+	; Initialize variables
 	failSafe := A_TickCount
 	failSafeTime := 0
+	friendCode := ""
+	friendName := ""
 	parseFriendCodeResult := False
-	blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
-	Loop {
-		friendCode := GetFriendCode(blowUp[A_Index])
-		if (RegExMatch(friendCode, "^\d{14,17}$")) {
-			parseFriendCodeResult := True
-			break
-		}
-		failSafeTime := (A_TickCount - failSafe) // 1000
-		if (failSafeTime > 4) {
-			parseFriendCodeResult := False
-			break
-		}
-	}
-	return parseFriendCodeResult
-}
-
-ParseFriendName(ByRef friendName) {
-	failSafe := A_TickCount
-	failSafeTime := 0
 	parseFriendNameResult := False
-	blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
+
 	Loop {
-		friendName := GetFriendName(blowUp[A_Index])
-		if (RegExMatch(friendName, "^[a-zA-Z0-9]{5,20}$")) {
-			parseFriendNameResult := True
+		; Grab screenshot via Adb
+		fullScreenshotFile := GetTempDirectory() . "\" .  winTitle . "_FriendProfile.png"
+		adbTakeScreenshot(fullScreenshotFile)
+
+		; Parse friend identifiers
+		if (!parseFriendCodeResult)
+			parseFriendCodeResult := ParseFriendInfoLoop(fullScreenshotFile, 328, 57, 197, 28, "0123456789", "^\d{14,17}$", friendCode)
+		if (includesIdsAndNames && !parseFriendNameResult)
+			parseFriendNameResult := ParseFriendInfoLoop(fullScreenshotFile, 107, 427, 325, 46, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", "^[a-zA-Z0-9]{5,20}$", friendName)
+		if (parseFriendCodeResult && (!includesIdsAndNames || parseFriendNameResult))
 			break
-		}
+
+		; Break and fail if this take more than 5 seconds
 		failSafeTime := (A_TickCount - failSafe) // 1000
-		if (failSafeTime > 4) {
-			parseFriendNameResult := False
+		if (failSafeTime > 5)
+			break
+	}
+
+	; Return true if we were able to parse EITHER the code OR the name
+	return parseFriendCodeResult || (includesIdsAndNames && parseFriendNameResult)
+}
+
+; Attempts to extract and validate text from a specified region of a screenshot using OCR.
+ParseFriendInfoLoop(screenshotFile, x, y, w, h, allowedChars, validPattern, ByRef output) {
+	; ------------------------------------------------------------------------------
+	; The function crops, formats, and scales the screenshot, runs OCR, 
+	; and checks if the result matches a valid pattern. It loops through multiple 
+	; scaling factors to improve OCR accuracy.
+	;
+	; Parameters:
+	;   screenshotFile (String)   - The path to the screenshot file to process.
+	;   x (Integer)               - The X-coordinate of the crop region.
+	;   y (Integer)               - The Y-coordinate of the crop region.
+	;   w (Integer)               - The width of the crop region.
+	;   h (Integer)               - The height of the crop region.
+	;   allowedChars (String)     - A list of allowed characters for OCR filtering.
+	;   validPattern (String)     - A regular expression pattern to validate the OCR result.
+	;   output (ByRef)            - A reference variable to store the OCR output text.
+	;
+	; Returns:
+	;   (Boolean) - True if valid text was found and matched the pattern, false otherwise.
+	; ------------------------------------------------------------------------------
+	success := False
+	blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
+	Loop, % blowUp.Length() {
+		; Get the formatted pBitmap
+		pBitmap := CropAndFormatForOcr(screenshotFile, x, y, w, h, blowUp[A_Index])
+		; Run OCR
+		output := GetTextFromBitmap(pBitmap, allowedChars)
+		; Validate result
+		if (RegExMatch(output, validPattern)) {
+			success := True
 			break
 		}
 	}
-	return parseFriendNameResult
+	return success
 }
 
+; FriendAccount class that holds information about a friend account, including the account's code (ID) and name.
 class FriendAccount {
+	; ------------------------------------------------------------------------------
+	; Properties:
+	;   Code (String)    - The unique identifier (ID) of the friend account.
+	;   Name (String)    - The name associated with the friend account.
+	;
+	; Methods:
+	;   __New(Code, Name) - Constructor method to initialize the friend account 
+	;                       with a code and name.
+	;   ToString()        - Returns a string representation of the friend account.
+	;                       If both the code and name are provided, it returns 
+	;                       "Name (Code)". If only one is available, it returns 
+	;                       that value, and if both are missing, it returns "Null".
+	; ------------------------------------------------------------------------------
 	__New(Code, Name) {
 		this.Code := Code
 		this.Name := Name
@@ -1361,8 +1305,20 @@ class FriendAccount {
 	}
 }
 
-ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
-	global minStars
+; Reads a file containing friend account information, parses it, and returns a list of FriendAccount objects
+GetFriendAccountsFromFile(filePath, ByRef includesIdsAndNames) {
+	; ------------------------------------------------------------------------------
+	; The function also determines if the file includes both IDs and names for each friend account.
+	; Friend accounts are only added to the output list if star and pack requirements are met.
+	;
+	; Parameters:
+	;   filePath (String)           - The path to the file to read.
+	;   includesIdsAndNames (ByRef) - A reference variable that will be set to true if the file includes both friend IDs and names.
+	;
+	; Returns:
+	;   (Array) - An array of FriendAccount objects, parsed from the file.
+	; ------------------------------------------------------------------------------
+	global minStars, minStarsA2b
 	friendList := []  ; Create an empty array
 	includesIdsAndNames := false
 
@@ -1381,6 +1337,7 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 		friendCode := ""
 		friendName := ""
 		twoStarCount := ""
+		packName := ""
 
 		if InStr(line, " | ") {
 			parts := StrSplit(line, " | ") ; Split by " | "
@@ -1393,12 +1350,23 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 
 			; Extract the number before "/" in TwoStarCount
 			twoStarCount := RegExReplace(parts[3], "\D.*", "")  ; Remove everything after the first non-digit
+
+			packName := Trim(parts[4])
 		} else {
 			friendCode := Trim(line)
 		}
 
+		friendCode := RegExReplace(friendCode, "\D") ; Clean the string (just in case)
+		if (!RegExMatch(friendCode, "^\d{14,17}$")) ; Only accept valid IDs
+			friendCode := ""
+		if (friendCode = "" && friendName = "")
+			continue
+
 		; Trim spaces and create a FriendAccount object
-		if (twoStarCount == "" || twoStarCount >= minStars) {
+		if (twoStarCount == "" 
+			|| (packName != "Shining" && twoStarCount >= minStars) 
+			|| (packName == "Shining" && twoStarCount >= minStarsA2b)  
+			|| (packName == "" && (twoStarCount >= minStars || twoStarCount >= minStarsA2b)) ) {
 			friend := new FriendAccount(friendCode, friendName)
 			friendList.Push(friend)  ; Add to array
 		}
@@ -1406,23 +1374,55 @@ ParseFriendAccounts(filePath, ByRef includesIdsAndNames) {
 	return friendList
 }
 
-MatchFriendAccounts(friend1, friend2) {
-	if (friend1.Code != "" && friend2.Code != "" && SimilarityScore(friend1.Code, friend2.Code) > 0.6)
-	{
-		return true
+; Compares two friend accounts to check if they match based on their code and/or name.
+MatchFriendAccounts(friend1, friend2, ByRef similarityScore := 1) {
+	; ------------------------------------------------------------------------------
+	; The similarity score between the two accounts is calculated and used to determine a match.
+	; If both the code and name match with a high enough similarity score, the function returns true.
+	;
+	; Parameters:
+	;   friend1 (Object)           - The first friend account to compare.
+	;   friend2 (Object)           - The second friend account to compare.
+	;   similarityScore (ByRef)    - A reference to store the calculated similarity score 
+	;                                (defaults to 1).
+	;
+	; Returns:
+	;   (Bool) - True if the accounts match based on the similarity score, false otherwise.
+	; ------------------------------------------------------------------------------
+	if (friend1.Code != "" && friend2.Code != "") {
+		similarityScore := SimilarityScore(friend1.Code, friend2.Code)
+		if (similarityScore > 0.6)
+			return true
 	}
-	if (friend1.Name != "" && friend2.Name != "" && SimilarityScore(friend1.Name, friend2.Name) > 0.8)
-	{
-		return true
+	if (friend1.Name != "" && friend2.Name != "") {
+		similarityScore := SimilarityScore(friend1.Name, friend2.Name)
+		if (similarityScore > 0.8) {
+			if (friend1.Code != "" && friend2.Code != "") {
+				similarityScore := (SimilarityScore(friend1.Code, friend2.Code) + SimilarityScore(friend1.Name, friend2.Name)) / 2
+				if (similarityScore > 0.7)
+					return true
+			}
+			else
+				return true
+		}
 	}
 	return false
 }
 
+; Checks if a given friend account exists in the friend list. If a match is found, the matching friend's information is returned via the matchedFriend parameter.
 IsFriendAccountInList(inputFriend, friendList, ByRef matchedFriend) {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   inputFriend (String)  - The account to search for in the list.
+	;   friendList (Array)    - The list of friends to search through.
+	;   matchedFriend (ByRef) - The matching friend's account information, if found (passed by reference).
+	;
+	; Returns:
+	;   (Bool) - True if a matching friend account is found, false otherwise.
+	; ------------------------------------------------------------------------------
 	matchedFriend := ""
 	for index, friend in friendList {
-		if (MatchFriendAccounts(inputFriend, friend))
-		{
+		if (MatchFriendAccounts(inputFriend, friend)) {
 			matchedFriend := friend
 			return true
 		}
@@ -1430,7 +1430,16 @@ IsFriendAccountInList(inputFriend, friendList, ByRef matchedFriend) {
 	return false
 }
 
+; Checks if an account has already been added to the friend list. If not, it adds the account to the list.
 IsRecentlyCheckedAccount(inputFriend, ByRef friendList) {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   inputFriend (String) - The account to check against the list.
+	;   friendList (Array)   - The list of friends to check the account against.
+	;
+	; Returns:
+	;   (Bool) - True if the account is already in the list, false otherwise.
+	; ------------------------------------------------------------------------------
 	if (inputFriend == "") {
 		return false
 	}
@@ -1446,7 +1455,10 @@ IsRecentlyCheckedAccount(inputFriend, ByRef friendList) {
 	return false  ; Account was not found and has been added
 }
 
+; Large veritical swipe up, to scroll through no more than 3 friends on the friend list.
 adbSwipeFriend() {
+	; Simulates a swipe gesture on an Android device, swiping from one Y-coordinate to another.
+	; The swipe is performed with a fixed X-coordinate, simulating a larger vertical swipe.
 	global adbShell
 	initializeAdbShell()
 	X := 138
@@ -1456,9 +1468,12 @@ adbSwipeFriend() {
 	Delay(10)
 	adbShell.StdIn.WriteLine("input swipe " . X . " " . Y1 . " " . X . " " . Y2 . " " . 300)
 	Sleep, 1000
- }
+}
 
- adbSwipeFriendMicro() {
+; Very small vertical swipe up, to correct miss-swipe on the friend list.
+adbSwipeFriendMicro() {
+	; Simulates a swipe gesture on an Android device, swiping from one Y-coordinate to another.
+	; The swipe is performed with a fixed X-coordinate, simulating a small vertical swipe.
 	global adbShell
 	initializeAdbShell()
 	X := 138
@@ -1470,9 +1485,10 @@ adbSwipeFriend() {
 	Sleep, 500
  }
 
+; Simulates a touch gesture on an Android device to scroll in a controlled way.
 adbGestureFriend() {
-	; The idea is to drag up and hold, in order to scroll in a controlled way
-	; Unfortunately, touchscreen gesture doesn't seem to be supported
+	; It performs a drag-up gesture by holding and dragging from a lower to an upper Y-coordinate.
+	; Unfortunately, touchscreen gesture doesn't seem to be supported.
 	global adbShell
 	initializeAdbShell()
 	X := 138
@@ -1484,7 +1500,96 @@ adbGestureFriend() {
 	Delay(1)
 }
 
-; Copied from other Arturo scripts
+; Takes a screenshot of an Android device using ADB and saves it to a file.
+adbTakeScreenshot(outputFile) {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   outputFile (String) - The path and filename where the screenshot will be saved.
+	; ------------------------------------------------------------------------------
+	global adbPath, adbPort
+	deviceAddress := "127.0.0.1:" . adbPort
+	command := """" . adbPath . """ -s " . deviceAddress . " exec-out screencap -p > """ .  outputFile . """"
+	RunWait, %ComSpec% /c "%command%", , Hide
+}
+
+; Crops an image, scales it up, converts it to grayscale, and enhances contrast to improve OCR accuracy.
+CropAndFormatForOcr(inputFile, x := 0, y := 0, width := 200, height := 200, scaleUpPercent := 200) {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   inputFile (String)    - Path to the input image file.
+	;   x (Int)               - X-coordinate of the crop region (default: 0).
+	;   y (Int)               - Y-coordinate of the crop region (default: 0).
+	;   width (Int)           - Width of the crop region (default: 200).
+	;   height (Int)          - Height of the crop region (default: 200).
+	;   scaleUpPercent (Int)  - Scaling percentage for resizing (default: 200%).
+	;
+	; Returns:
+	;   (Ptr) - Pointer to the processed GDI+ bitmap. Caller must dispose of it.
+	; ------------------------------------------------------------------------------
+	; Get bitmap from file
+	pBitmapOrignal := Gdip_CreateBitmapFromFile(inputFile)
+	; Crop to region, Scale up the image, Convert to greyscale, Increase contrast
+	pBitmapFormatted := Gdip_CropResizeGreyscaleContrast(pBitmapOrignal, x, y, width, height, scaleUpPercent, 25)
+	; Cleanup references
+	Gdip_DisposeImage(pBitmapOrignal)
+	return pBitmapFormatted
+}
+
+; Extracts text from a bitmap using OCR (Optical Character Recognition). Converts the bitmap to a format usable by Windows OCR, performs OCR, and optionally removes characters not in the allowed character list.
+GetTextFromBitmap(pBitmap, charAllowList := "") {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   pBitmap (Ptr)         - Pointer to the source GDI+ bitmap.
+	;   charAllowList (String) - A list of allowed characters for OCR results (default: "").
+	;
+	; Returns:
+	;   (String) - The OCR-extracted text, with disallowed characters removed.
+	; -----------------------------------------------------------------------------
+	global ocrLanguage
+	ocrText := ""
+	; OCR the bitmap directly
+	hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
+	pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+	ocrText := ocr(pIRandomAccessStream, ocrLanguage)
+	; Cleanup references
+	; ObjRelease(pIRandomAccessStream) ; TODO: do I need this?
+	DeleteObject(hBitmapFriendCode)
+	; Remove disallowed characters
+	if (charAllowList != "") {
+		allowedPattern := "[^" RegExEscape(charAllowList) "]"
+		ocrText := RegExReplace(ocrText, allowedPattern)
+	}
+
+	return Trim(ocrText, " `t`r`n")
+}
+
+; Escapes special characters in a string for use in a regular expression. It prepends a backslash to characters that have special meaning in regex.
+RegExEscape(str) {
+	; ------------------------------------------------------------------------------
+	; Parameters:
+	;   str (String) - The input string to be escaped.
+	;
+	; Returns:
+	;   (String) - The escaped string, ready for use in a regular expression.
+	; ------------------------------------------------------------------------------
+	return RegExReplace(str, "([-[\]{}()*+?.,\^$|#\s])", "\$1")
+}
+
+; Retrieves the path to the temporary directory for the script. If the directory does not exist, it is created.
+GetTempDirectory() {
+	; ------------------------------------------------------------------------------
+	; Returns:
+	;   (String) - The full path to the temporary directory.
+	; ------------------------------------------------------------------------------
+	tempDir := A_ScriptDir . "\temp"
+	if !FileExist(tempDir)
+		FileCreateDir, %tempDir%
+	return tempDir
+}
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; ~~~ Copied from other Arturo scripts ~~~
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Delay(n) {
 	global Delay
 	msTime := Delay * n
@@ -1510,10 +1615,3 @@ DownloadFile(url, filename) {
 	}
 	return !errored
 }
-
-
-; DEBUG
-; F1::
-; 	MouseGetPos, mouseX, mouseY  ; Retrieves the mouse cursor's X and Y positions
-; 	CreateStatusMessage("Mouse coordinates - X: " . mouseX . " Y: " . mouseY )
-; return

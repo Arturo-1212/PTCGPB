@@ -133,16 +133,19 @@ Loop {
 		OwnerWND := WinExist(winTitle)
 		x4 := x + 5
 		y4 := y + 44
+		buttonWidth := 40
+		if (scaleParam = 287)
+			buttonWidth := buttonWidth + 5
 
 		Gui, New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption +LastFound
 		Gui, Default
 		Gui, Margin, 4, 4  ; Set margin for the GUI
 		Gui, Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
-		Gui, Add, Button, x0 y0 w40 h25 gReloadScript, Reload  (Shift+F5)
-		Gui, Add, Button, x40 y0 w40 h25 gPauseScript, Pause (Shift+F6)
-		Gui, Add, Button, x80 y0 w40 h25 gResumeScript, Resume (Shift+F6)
-		Gui, Add, Button, x120 y0 w40 h25 gStopScript, Stop (Shift+F7)
-		Gui, Add, Button, x160 y0 w40 h25 gShowStatusMessages, Status (Shift+F8)
+		Gui, Add, Button, % "x" . (buttonWidth * 0) . " y0 w" . buttonWidth . " h25 gReloadScript", Reload  (Shift+F5)
+		Gui, Add, Button, % "x" . (buttonWidth * 1) . " y0 w" . buttonWidth . " h25 gPauseScript", Pause (Shift+F6)
+		Gui, Add, Button, % "x" . (buttonWidth * 2) . " y0 w" . buttonWidth . " h25 gResumeScript", Resume (Shift+F6)
+		Gui, Add, Button, % "x" . (buttonWidth * 3) . " y0 w" . buttonWidth . " h25 gStopScript", Stop (Shift+F7)
+		Gui, Add, Button, % "x" . (buttonWidth * 4) . " y0 w" . buttonWidth . " h25 gShowStatusMessages", Status (Shift+F8)
 		DllCall("SetWindowPos", "Ptr", WinExist(), "Ptr", 1  ; HWND_BOTTOM
 				, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE
 		Gui, Show, NoActivate x%x4% y%y4% AutoSize
@@ -1387,9 +1390,9 @@ FoundStars(star) {
 	else {
 		; If we're doing the inject method, try to OCR our Username
 		try {
-			if(injectMethod && IsFunc("ocr_from_file"))
+			if(injectMethod && IsFunc("ocr"))
 			{
-					ocrText := Func("ocr_from_file").Call(fcScreenshot, ocrLanguage)
+					ocrText := Func("ocr").Call(fcScreenshot, ocrLanguage)
 					ocrLines := StrSplit(ocrText, "`n")
 					len := ocrLines.MaxIndex()
 					if(len > 1) {
@@ -1596,9 +1599,9 @@ GodPackFound(validity) {
 
 	; If we're doing the inject method, try to OCR our Username
 	try {
-		if(injectMethod && IsFunc("ocr_from_file"))
+		if(injectMethod && IsFunc("ocr"))
 		{
-				ocrText := Func("ocr_from_file").Call(fcScreenshot, ocrLanguage)
+				ocrText := Func("ocr").Call(fcScreenshot, ocrLanguage)
 				ocrLines := StrSplit(ocrText, "`n")
 				len := ocrLines.MaxIndex()
 				if(len > 1) {
