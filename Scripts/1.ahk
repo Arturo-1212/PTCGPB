@@ -283,14 +283,15 @@ if(DeadCheck==1) {
 			; 														just to get around the checking for a level after opening a pack. This change is made based on the 
 			;															5p-no delete community mod created by DietPepperPhD in the discord server.
 
-			if(deleteMethod != "5 Pack (Fast)") {
-				friendsAdded := AddFriends(true)
-			} else {
-				FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
-				FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500)
+			if(packMethod || deleteMethod != "5 Pack (Fast)") {
+				friendsAdded := AddFriends(true)			
+				SelectPack("HGPack")
+				PackOpening()
 			}
-			SelectPack("HGPack")
-			PackOpening()
+			else{
+				HourglassOpening(true)
+			}
+
 			if(packMethod) {
 				friendsAdded := AddFriends(true)
 				SelectPack("HGPack")
@@ -657,10 +658,20 @@ AddFriends(renew := false, getFC := false) {
 
 ChooseTag() {
 	FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
-	FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500) 212 276 230 294
-	FindImageAndClick(203, 272, 237, 300, , "Profile", 143, 95, 500)
+	failSafe := A_TickCount
+	failSafeTime := 0
+	Loop {
+		FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500, 2)
+		LevelUp()
+		if(FindImageAndClick(203, 272, 237, 300, , "Profile", 143, 95, 500, 2, failSafeTime))
+			break
+		failSafeTime := (A_TickCount - failSafe) // 1000
+		CreateStatusMessage("In failsafe for Profile. " . failSafeTime "/45 seconds")
+		LogToFile("In failsafe for Profile. " . failSafeTime "/45 seconds")
+	}
 	FindImageAndClick(205, 310, 220, 319, , "ChosenTag", 143, 306, 1000)
-	FindImageAndClick(203, 272, 237, 300, , "Profile", 143, 505, 1000)
+	FindImageAndClick(53, 218, 63, 228, , "Badge", 143, 466, 500)
+	FindImageAndClick(203, 272, 237, 300, , "Profile", 61, 112, 500)
 	if(FindOrLoseImage(145, 140, 157, 155, , "Eevee", 1)) {
 		FindImageAndClick(163, 200, 173, 207, , "ChooseEevee", 147, 207, 1000)
 		FindImageAndClick(53, 218, 63, 228, , "Badge", 143, 466, 500)
@@ -917,10 +928,10 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 				failSafe := A_TickCount
 			}
 		}
-		Path = %imagePath%Error1.png
+		Path = %imagePath%Error.png
 		pNeedle := GetNeedle(Path)
 		; ImageSearch within the region
-		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
+		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 120, 187, 155, 210, searchVariation)
 		if (vRet = 1) {
 			CreateStatusMessage("Error message in " . scriptName " Clicking retry..." )
 			LogToFile("Error message in " scriptName " Clicking retry..." )
@@ -955,6 +966,16 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 				}
 				LogToFile("Restarted game for instance " scriptName " Reason: No save data found", "Restart.txt")
 				Reload
+			}
+		}
+		if(imageName = "Missions") { ; may input extra ESC and stuck at exit game
+			Path = %imagePath%Delete2.png
+			pNeedle := GetNeedle(Path)
+			; ImageSearch within the region
+			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 118, 353, 135, 390, searchVariation)
+			if (vRet = 1) {
+				adbClick(74, 353)
+				Delay(1)
 			}
 		}
 		Gdip_DisposeImage(pBitmap)
@@ -1845,7 +1866,7 @@ adbInputEvent(event) {
 adbSwipeUp(speed) {
 	global adbShell, adbPath, adbPort
 	;initializeAdbShell()
-	adbShell.StdIn.WriteLine("input swipe 266 770 266 355 " . speed)
+	adbShell.StdIn.WriteLine("input swipe 309 876 309 207 " . speed)
 	waitadb()
 }
 
@@ -2607,9 +2628,9 @@ DoTutorial() {
 	}
 
 	FindImageAndClick(34, 99, 74, 131, , "Swipe", 140, 375) ;click through cards until needing to swipe up
-		if(setSpeed > 1) {
+		if(setSpeed > 2) {
 			FindImageAndClick(65, 195, 100, 215, , "Platin", 18, 109, 2000) ; click mod settings
-			FindImageAndClick(9, 170, 25, 190, , "One", 26, 180) ; click mod settings
+			FindImageAndClick(100, 170, 113, 190, , "Two", 107, 180) ; click mod settings
 			Delay(1)
 		}
 	failSafe := A_TickCount
@@ -3195,7 +3216,7 @@ DoWonderPick() {
 			adbClick(110, 369)
 		}
 		else if(FindOrLoseImage(191, 393, 211, 411, , "Shop", 1, failSafeTime))
-			adbInputEvent("111") ;send ESC
+			adbClick(139, 492)
 		else
 			break
 		failSafeTime := (A_TickCount - failSafe) // 1000
