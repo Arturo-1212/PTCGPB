@@ -3144,7 +3144,8 @@ DoWonderPick() {
 	failSafe := A_TickCount
 	failSafeTime := 0
 	Loop {
-		adbClick(183, 350) ; click card
+		adbClick(50, 225) ;click top left card
+		adbClick(146, 494) ; click bottom middle
 		if(FindOrLoseImage(160, 330, 200, 370, , "Card", 1, failSafeTime)) {
 			break
 		}
