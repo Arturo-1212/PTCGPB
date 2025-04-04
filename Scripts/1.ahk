@@ -216,23 +216,17 @@ if(DeadCheck==1) {
 		openPack := packArray[rand]
 		friended := false
 		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Instance%scriptName%
-		FormatTime, CurrentTime,, HHmm
-
-		StartTime := changeDate - 45 ; 12:55 AM2355
-		EndTime := changeDate + 5 ; 1:01 AM
-
-		; Adjust for crossing midnight
-		if (StartTime < 0)
-			StartTime += 2400
-		if (EndTime >= 2400)
-			EndTime -= 2400
+		
+		FormatTime, CurrentTime, %A_NowUTC%, HHmm
+		StartTime := 0555
+		EndTime := 0605
 
 		Random, randomTime, 3, 7
 
 		While(((CurrentTime - StartTime >= 0) && (CurrentTime - StartTime <= randomTime)) || ((EndTime - CurrentTime >= 0) && (EndTime - CurrentTime <= randomTime)))
 		{
 			CreateStatusMessage("I need a break... Sleeping until " . changeDate + randomTime . " `nto avoid being kicked out from the date change")
-			FormatTime, CurrentTime,, HHmm ; Update the current time after sleep
+			FormatTime, CurrentTime, %A_NowUTC%, HHmm ; Update the current time after sleep
 			Sleep, 5000
 			dateChange := true
 		}
@@ -3206,44 +3200,12 @@ DoWonderPick() {
 }
 
 getChangeDateTime() {
-	; Get system timezone bias and determine local time for 1 AM EST
-
-	; Retrieve timezone information from Windows registry
-	RegRead, TimeBias, HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation, Bias
-	RegRead, DltBias, HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation, ActiveTimeBias
-
-	; Convert registry values to integers
-	Bias := TimeBias + 0
-	DltBias := DltBias + 0
-
-	; Determine if Daylight Saving Time (DST) is active
-	IsDST := (Bias != DltBias) ? 1 : 0
-
-	; EST is UTC-5 (300 minutes offset)
-	EST_Offset := 300
-
-	; Use the correct local offset (DST or Standard)
-	Local_Offset := (IsDST) ? DltBias : Bias
-
-	; Convert 1 AM EST to UTC (UTC = EST + 5 hours)
-	UTC_Time := 1 + EST_Offset / 60  ; 06:00 UTC
-
-	; Convert UTC to local time
-	Local_Time := UTC_Time - (Local_Offset / 60)
-
-	; Round to ensure we get whole numbers
-	Local_Time := Floor(Local_Time)
-
-	; Handle 24-hour wrap-around
-	If (Local_Time < 0)
-		Local_Time += 24
-	Else If (Local_Time >= 24)
-		Local_Time -= 24
-
-	; Format output as HHMM
-	FormattedTime := (Local_Time < 10 ? "0" : "") . Local_Time . "00"
-
-	Return FormattedTime
+	offset := A_Now
+	offset -= A_NowUTC, S
+	baseTime := SubStr(A_Now, 1, 8) "0600"
+	EnvAdd, baseTime, %offset%, Seconds
+	FormatTime, output, %baseTime%, HHmm
+	return output
 }
 
 
