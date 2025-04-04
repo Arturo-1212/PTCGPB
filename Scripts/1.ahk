@@ -1028,8 +1028,8 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 			}
 			LogToFile("Restarted game for instance " scriptName " Reason: No save data found", "Restart.txt")
 			Reload
-			}
 		}
+	}
 	if(imageName = "Points" || imageName = "Home") { ;look for level up ok "button"
 		LevelUp()
 	}
@@ -1841,7 +1841,7 @@ GodPackFound(validity) {
 		Praise := ["Congrats!", "Congratulations!", "GG!", "Whoa!", "Praise Helix! ༼ つ ◕_◕ ༽つ", "Way to go!", "You did it!", "Awesome!", "Nice!", "Cool!", "You deserve it!", "Keep going!", "This one has to be live!", "No duds, no duds, no duds!", "Fantastic!", "Bravo!", "Excellent work!", "Impressive!", "You're amazing!", "Well done!", "You're crushing it!", "Keep up the great work!", "You're unstoppable!", "Exceptional!", "You nailed it!", "Hats off to you!", "Sweet!", "Kudos!", "Phenomenal!", "Boom! Nailed it!", "Marvelous!", "Outstanding!", "Legendary!", "Youre a rock star!", "Unbelievable!", "Keep shining!", "Way to crush it!", "You're on fire!", "Killing it!", "Top-notch!", "Superb!", "Epic!", "Cheers to you!", "Thats the spirit!", "Magnificent!", "Youre a natural!", "Gold star for you!", "You crushed it!", "Incredible!", "Shazam!", "You're a genius!", "Top-tier effort!", "This is your moment!", "Powerful stuff!", "Wicked awesome!", "Props to you!", "Big win!", "Yesss!", "Champion vibes!", "Spectacular!"]
 		invalid := ""
 	} else {
-		Praise := ["Uh-oh!", "Oops!", "Not quite!", "Better luck next time!", "Yikes!", "That didn't go as planned.", "Try again!", "Almost had it!", "Not your best effort.", "Keep practicing!", "Oh no!", "Close, but no cigar.", "You missed it!", "Needs work!", "Back to the drawing board!", "Whoops!", "That's rough!", "Don't give up!", "Ouch!", "Swing and a miss!", "Room for improvement!", "Could be better.", "Not this time.", "Try harder!", "Missed the mark.", "Keep at it!", "Bummer!", "That's unfortunate.", "So close!", "Gotta do better!"]
+		Praise := ["Uh-oh!", "Oops!", "Not quite!", "Better luck next time!", "Yikes!", "That didn’t go as planned.", "Try again!", "Almost had it!", "Not your best effort.", "Keep practicing!", "Oh no!", "Close, but no cigar.", "You missed it!", "Needs work!", "Back to the drawing board!", "Whoops!", "That’s rough!", "Don’t give up!", "Ouch!", "Swing and a miss!", "Room for improvement!", "Could be better.", "Not this time.", "Try harder!", "Missed the mark.", "Keep at it!", "Bummer!", "That’s unfortunate.", "So close!", "Gotta do better!"]
 		invalid := validity
 	}
 	Randmax := Praise.Length()
@@ -2885,9 +2885,9 @@ DoTutorial() {
 		if (FindOrLoseImage(225, 273, 235, 290, , "Pack", 1, failSafeTime)){
 			if(setSpeed > 1) {
 				if(setSpeed = 3)
-						FindImageAndClick(182, 170, 194, 190, , "Three", 187, 180) ; click mod settings
+						FindImageAndClick(182, 170, 194, 190, , "Three", 187, 180) ; click 3x
 				else
-						FindImageAndClick(100, 170, 113, 190, , "Two", 107, 180) ; click mod settings
+						FindImageAndClick(100, 170, 113, 190, , "Two", 107, 180) ; click 2x
 			}
 			adbClick(41, 296)
 				break

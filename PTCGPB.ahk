@@ -3,12 +3,13 @@ version = Arturos PTCGP Bot
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
 
-githubUser := "Arturo-1212"
+githubUser := "hoytdj"
 repoName := "PTCGPB"
-localVersion := "v6.3.28"
+localVersion := "v1.5.3"
 scriptFolder := A_ScriptDir
 zipPath := A_Temp . "\update.zip"
 extractPath := A_Temp . "\update"
+DEBUG := false ; TODO: Make this false!
 
 if not A_IsAdmin
 {
@@ -17,9 +18,11 @@ if not A_IsAdmin
 	ExitApp
 }
 
-MsgBox, 64, The project is now licensed under CC BY-NC 4.0, The original intention of this project was not for it to be used for paid services even those disguised as 'donations.' I hope people respect my wishes and those of the community. `nThe project is now licensed under CC BY-NC 4.0, which allows you to use, modify, and share the software only for non-commercial purposes. Commercial use, including using the software to provide paid services or selling it (even if donations are involved), is not allowed under this license. The new license applies to this and all future releases.
-
-CheckForUpdate()
+if (!DEBUG)
+{
+	MsgBox, 64, The project is now licensed under CC BY-NC 4.0, The original intention of this project was not for it to be used for paid services even those disguised as 'donations.' I hope people respect my wishes and those of the community. `nThe project is now licensed under CC BY-NC 4.0, which allows you to use, modify, and share the software only for non-commercial purposes. Commercial use, including using the software to provide paid services or selling it (even if donations are involved), is not allowed under this license. The new license applies to this and all future releases.
+	CheckForUpdate()
+}
 
 KillADBProcesses()
 
@@ -103,6 +106,7 @@ IniRead, minStarsA2b, Settings.ini, UserSettings, minStarsA2b, 0
 
 IniRead, heartBeatDelay, Settings.ini, UserSettings, heartBeatDelay, 30
 IniRead, sendAccountXml, Settings.ini, UserSettings, sendAccountXml, 0
+IniRead, tesseractPath, Settings.ini, UserSettings, tesseractPath, C:\Program Files\Tesseract-OCR\tesseract.exe
 
 ; Create a stylish GUI with custom colors and modern look
 Gui, Color, 1E1E1E, 333333 ; Dark theme background
@@ -235,7 +239,7 @@ else if (deleteMethod = "3 Pack")
 	defaultDelete := 2
 else if (deleteMethod = "Inject")
 	defaultDelete := 3
-else if (deleteMethod = "5 Pack (Fast)")
+else if (deleteMethod = "5 Pack (Fast)" || deleteMethod = "5 Pack No Remove")
 	defaultDelete := 4
 ;	SquallTCGP 2025.03.12 - 	Adding the delete method 5 Pack (Fast) to the delete method dropdown list.
 Gui, Add, DropDownList, vdeleteMethod gdeleteSettings choose%defaultDelete% x325 y48 w100 Background2A2A2A cWhite, 5 Pack|3 Pack|Inject|5 Pack (Fast)
@@ -335,6 +339,16 @@ Gui, Add, Text, x270 y425 %sectionColor%, ids.txt API:
 Gui, Add, Edit, vmainIdsURL w460 x270 y445 h20 -E0x200 Background2A2A2A cWhite, %mainIdsURL%
 Gui, Add, Text, x270 y465 %sectionColor%, vip_ids.txt (GP Test Mode) API:
 Gui, Add, Edit, vvipIdsURL w460 x270 y485 h20 -E0x200 Background2A2A2A cWhite, %vipIdsURL%
+
+
+; ========= Column 1-3 =========
+; ==============================
+
+; ========== Add-On Settings Section ==========
+Gui, Add, GroupBox, x5 y515 w740 h50 cWhite, Extra Settings
+
+Gui, Add, Text, x15 y535 cWhite, Tesseract Path:
+Gui, Add, Edit, vtesseractPath w300 x115 y534 h20 -E0x200 Background2A2A2A cWhite, %tesseractPath%
 
 Gui, Show, , %localVersion% PTCGPB Bot Setup [Non-Commercial 4.0 International License]
 Return
@@ -517,9 +531,10 @@ Start:
 	IniWrite, %minStarsA2Palkia%, Settings.ini, UserSettings, minStarsA2Palkia
 	IniWrite, %minStarsA2a%, Settings.ini, UserSettings, minStarsA2a
 	IniWrite, %minStarsA2b%, Settings.ini, UserSettings, minStarsA2b
-	
+		
 	IniWrite, %heartBeatDelay%, Settings.ini, UserSettings, heartBeatDelay
 	IniWrite, %sendAccountXml%, Settings.ini, UserSettings, sendAccountXml
+	IniWrite, %tesseractPath%, Settings.ini, UserSettings, tesseractPath
 	
 	; Using FriendID field to provide a URL to download ids.txt is deprecated.
 	if (inStr(FriendID, "http")) {

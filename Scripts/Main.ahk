@@ -20,7 +20,7 @@ DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
-global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b, vipIdsURL
+global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b, vipIdsURL, tesseractPath
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -28,6 +28,8 @@ winTitle := scriptName
 pauseToggle := false
 showStatus := true
 jsonFileName := A_ScriptDir . "\..\json\Packs.json"
+DEBUG := false ; TODO: Make this false!
+
 IniRead, FriendID, %A_ScriptDir%\..\Settings.ini, UserSettings, FriendID
 IniRead, Instances, %A_ScriptDir%\..\Settings.ini, UserSettings, Instances
 IniRead, Delay, %A_ScriptDir%\..\Settings.ini, UserSettings, Delay, 250
@@ -53,6 +55,7 @@ IniRead, ocrLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, ocrLanguage, 
 IniRead, clientLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, clientLanguage, en
 IniRead, minStars, %A_ScriptDir%\..\Settings.ini, UserSettings, minStars, 0
 IniRead, minStarsA2b, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2b, 0
+IniRead, tesseractPath, %A_ScriptDir%\..\Settings.ini, UserSettings, tesseractPath, C:\Program Files\Tesseract-OCR\tesseract.exe
 
 adbPort := findAdbPorts(folderPath)
 
@@ -133,7 +136,8 @@ pToken := Gdip_Startup()
 if(heartBeat)
 	IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
 FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 150)
-firstRun := true
+if (!DEBUG)
+	firstRun := True
 
 global 99Configs := {}
 99Configs["en"] := {leftx: 123, rightx: 162}
@@ -453,8 +457,12 @@ resetWindows(){
 	return true
 }
 
-restartGameInstance(reason, RL := true){
-	global Delay, scriptName, adbShell, adbPath, adbPort
+restartGameInstance(reason, RL := true) {
+	global DEBUG, Delay, scriptName, adbShell, adbPath, adbPort
+
+	if (DEBUG)
+		return
+
 	initializeAdbShell()
 	CreateStatusMessage("Restarting game reason: " reason)
 
@@ -709,7 +717,7 @@ return
 
 ToggleTestScript()
 {
-	global GPTest, triggerTestNeeded, testStartTime, firstRun
+	global DEBUG, GPTest, triggerTestNeeded, testStartTime, firstRun
 	if(!GPTest) {
 		GPTest := true
 		triggerTestNeeded := true
@@ -724,7 +732,8 @@ ToggleTestScript()
 		totalTestTime := (A_TickCount - testStartTime) // 1000
 		if (testStartTime != "" && (totalTestTime >= 180))
 		{
-			firstRun := True
+			if (!DEBUG)
+				firstRun := True
 			testStartTime := ""
 		}
 		CreateStatusMessage("Exiting GP Test Mode")
@@ -1547,19 +1556,46 @@ GetTextFromBitmap(pBitmap, charAllowList := "") {
 	; Returns:
 	;   (String) - The OCR-extracted text, with disallowed characters removed.
 	; -----------------------------------------------------------------------------
-	global ocrLanguage
+	global ocrLanguage, winTitle, tesseractPath
 	ocrText := ""
-	; OCR the bitmap directly
-	hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
-	pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
-	ocrText := ocr(pIRandomAccessStream, ocrLanguage)
-	; Cleanup references
-	; ObjRelease(pIRandomAccessStream) ; TODO: do I need this?
-	DeleteObject(hBitmapFriendCode)
-	; Remove disallowed characters
-	if (charAllowList != "") {
-		allowedPattern := "[^" RegExEscape(charAllowList) "]"
-		ocrText := RegExReplace(ocrText, allowedPattern)
+
+	if FileExist(tesseractPath) {
+		; ~~~~~~~~~~~~~~~~~~~~~~~~~
+		; ~~~ Use Tesseract OCR ~~~
+		; ~~~~~~~~~~~~~~~~~~~~~~~~~
+		; Save to file
+		filepath := GetTempDirectory() . "\" . winTitle . "_" . filename . ".png"
+		saveResult := Gdip_SaveBitmapToFile(pBitmap, filepath, 100)
+		if (saveResult != 0) {
+			CreateStatusMessage("Failed to save " . filepath . " screenshot.`nError code: " . saveResult)
+			return False
+		}
+		; OCR the file directly
+		command := """" . tesseractPath . """ """ . filepath . """ -"
+		if (charAllowList != "") {
+			command := command . " -c tessedit_char_whitelist=" . charAllowList
+		}
+		command := command . " --oem 3 --psm 7"
+		ocrText := CmdRet(command)
+	}
+	else {
+		; ~~~~~~~~~~~~~~~~~~~~~~~
+		; ~~~ Use Windows OCR ~~~
+		; ~~~~~~~~~~~~~~~~~~~~~~~
+		global ocrLanguage
+		ocrText := ""
+		; OCR the bitmap directly
+		hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
+		pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+		ocrText := ocr(pIRandomAccessStream, ocrLanguage)
+		; Cleanup references
+		; ObjRelease(pIRandomAccessStream) ; TODO: do I need this?
+		DeleteObject(hBitmapFriendCode)
+		; Remove disallowed characters
+		if (charAllowList != "") {
+			allowedPattern := "[^" RegExEscape(charAllowList) "]"
+			ocrText := RegExReplace(ocrText, allowedPattern)
+		}
 	}
 
 	return Trim(ocrText, " `t`r`n")
