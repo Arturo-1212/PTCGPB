@@ -677,10 +677,7 @@ from_window(ByRef image) {
 ~+F9::ToggleTestScript() ; hoytdj Add
 
 ToggleStatusMessages() {
-    if(showStatus)
-        showStatus := False
-    else
-        showStatus := True
+    showStatus := !showStatus
 }
 
 bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
