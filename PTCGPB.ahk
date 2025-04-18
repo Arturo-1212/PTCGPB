@@ -1,17 +1,26 @@
-﻿#Include %A_ScriptDir%\Scripts\Include\Logging.ahk
-#Include %A_ScriptDir%\Scripts\Include\ADB.ahk
+﻿#Include %A_ScriptDir%\Scripts\Include\Logger_Module.ahk
+#Include %A_ScriptDir%\Scripts\Include\Gdip_All.ahk
+#Include %A_ScriptDir%\Scripts\Include\Gdip_Imagesearch.ahk
+#Include %A_ScriptDir%\Scripts\Include\Utils.ahk
+#Include %A_ScriptDir%\Scripts\Include\Gdip_Extra.ahk
+#Include %A_ScriptDir%\Scripts\Include\StringCompare.ahk
+#Include %A_ScriptDir%\Scripts\Include\OCR.ahk
 
 version = Arturos PTCGP Bot
 #SingleInstance, force
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
 
-githubUser := "Arturo-1212"
+githubUser := "gfrcr"
 repoName := "PTCGPB"
-localVersion := "v6.3.29"
+localVersion := "v1.4.5.1"
 scriptFolder := A_ScriptDir
 zipPath := A_Temp . "\update.zip"
 extractPath := A_Temp . "\update"
+
+; Read debugMode from Settings.ini before checking it
+IniRead, debugMode, Settings.ini, UserSettings, debugMode, 0
+
 
 if not A_IsAdmin
 {
@@ -19,10 +28,11 @@ if not A_IsAdmin
     Run *RunAs "%A_ScriptFullPath%"
     ExitApp
 }
-
-MsgBox, 64, The project is now licensed under CC BY-NC 4.0, The original intention of this project was not for it to be used for paid services even those disguised as 'donations.' I hope people respect my wishes and those of the community. `nThe project is now licensed under CC BY-NC 4.0, which allows you to use, modify, and share the software only for non-commercial purposes. Commercial use, including using the software to provide paid services or selling it (even if donations are involved), is not allowed under this license. The new license applies to this and all future releases.
-
-CheckForUpdate()
+if (!debugMode)
+{
+    MsgBox, 64, The project is now licensed under CC BY-NC 4.0, The original intention of this project was not for it to be used for paid services even those disguised as 'donations.' I hope people respect my wishes and those of the community. `nThe project is now licensed under CC BY-NC 4.0, which allows you to use, modify, and share the software only for non-commercial purposes. Commercial use, including using the software to provide paid services or selling it (even if donations are involved), is not allowed under this license. The new license applies to this and all future releases.
+    CheckForUpdate()
+}
 
 KillADBProcesses()
 
@@ -56,6 +66,8 @@ IniRead, FriendID, Settings.ini, UserSettings, FriendID
 IniRead, waitTime, Settings.ini, UserSettings, waitTime, 5
 IniRead, Delay, Settings.ini, UserSettings, Delay, 250
 IniRead, folderPath, Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
+IniRead, discordWebhookURL, Settings.ini, UserSettings, discordWebhookURL, ""
+IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
 IniRead, Columns, Settings.ini, UserSettings, Columns, 5
 IniRead, godPack, Settings.ini, UserSettings, godPack, Continue
 IniRead, Instances, Settings.ini, UserSettings, Instances, 1
@@ -121,6 +133,10 @@ IniRead, s4tDiscordWebhookURL, Settings.ini, UserSettings, s4tDiscordWebhookURL
 IniRead, s4tDiscordUserId, Settings.ini, UserSettings, s4tDiscordUserId
 IniRead, s4tSendAccountXml, Settings.ini, UserSettings, s4tSendAccountXml, 1
 
+IniRead, tesseractPath, Settings.ini, UserSettings, tesseractPath, C:\Program Files\Tesseract-OCR\tesseract.exe
+IniRead, applyRoleFilters, Settings.ini, UserSettings, applyRoleFilters, 0
+IniRead, debugMode, Settings.ini, UserSettings, debugMode, 0
+
 ; Create a stylish GUI with custom colors and modern look
 Gui, Color, 1E1E1E, 333333 ; Dark theme background
 Gui, Font, s10 cWhite, Segoe UI ; Modern font
@@ -151,7 +167,7 @@ Gui, Add, Checkbox, % (runMain ? "Checked" : "") " vrunMain gmainSettings x20 y1
 Gui, Add, Edit, % "vMains w50 x125 y148 h20 -E0x200 Background2A2A2A " . sectionColor . " Center" . (runMain ? "" : " Hidden"), %Mains%
 
 ; ========== Time Settings Section ==========
-sectionColor := "c9370DB" ; Purple
+sectionColor := "cWhite" ; "c9370DB" ; Purple
 Gui, Add, GroupBox, x5 y180 w240 h125 %sectionColor%, Time Settings
 Gui, Add, Text, x20 y205 %sectionColor%, Action Delay (ms):
 Gui, Add, Edit, vDelay w60 x145 y203 h20 -E0x200 Background2A2A2A cWhite Center, %Delay%
@@ -162,7 +178,7 @@ Gui, Add, Edit, vwaitTime w60 x145 y253 h20 -E0x200 Background2A2A2A cWhite Cent
 Gui, Add, Checkbox, % (slowMotion ? "Checked" : "") " vslowMotion x20 y280 " . sectionColor, Base Game Compatibility
 
 ; ========== System Settings Section ==========
-sectionColor := "c4169E1" ; Royal Blue
+sectionColor := "cWhite" ; "c4169E1" ; Royal Blue
 Gui, Add, GroupBox, x5 y305 w240 h210 %sectionColor%, System Settings
 Gui, Add, Text, x20 y325 %sectionColor%, Monitor:
 SysGet, MonitorCount, MonitorCount
@@ -271,7 +287,7 @@ Gui, Add, Checkbox, % (ImmersiveCheck ? "Checked" : "") " vImmersiveCheck x270 y
 ; ==============================
 
 ; ========== God Pack Settings Section ==========
-sectionColor := "c39FF14" ; Neon green
+sectionColor := "cWhite" ; "c39FF14" ; Neon green
 Gui, Add, GroupBox, x505 y0 w240 h130 %sectionColor%, God Pack Settings
 Gui, Add, Text, x520 y25 %sectionColor%, Min. 2 Stars:
 Gui, Add, Edit, vminStars w25 x600 y23 h20 -E0x200 Background2A2A2A cWhite Center, %minStars%
@@ -285,7 +301,7 @@ else if (deleteMethod = "3 Pack")
     defaultDelete := 2
 else if (deleteMethod = "Inject")
     defaultDelete := 3
-else if (deleteMethod = "5 Pack (Fast)")
+else if (deleteMethod = "5 Pack (Fast)" || deleteMethod = "5 Pack No Remove")
     defaultDelete := 4
 ;    SquallTCGP 2025.03.12 -     Adding the delete method 5 Pack (Fast) to the delete method dropdown list.
 Gui, Add, DropDownList, vdeleteMethod gdeleteSettings choose%defaultDelete% x575 y48 w100 Background2A2A2A cWhite, 5 Pack|3 Pack|Inject|5 Pack (Fast)
@@ -293,7 +309,7 @@ Gui, Add, Checkbox, % (packMethod ? "Checked" : "") " vpackMethod x520 y80 " . s
 Gui, Add, Checkbox, % (nukeAccount ? "Checked" : "") " vnukeAccount x520 y100 " . sectionColor, Menu Delete Account
 
 ; ========== Save For Trade Settings Section ==========
-sectionColor := "cFFA500" ; Orange
+sectionColor := "cWhite" ; "cFFA500" ; Orange
 Gui, Add, GroupBox, x505 y130 w240 h175 %sectionColor%, Save For Trade Settings
 Gui, Add, Checkbox, % "vs4tEnabled gs4tSettings x520 y155 " . (s4tEnabled ? "Checked " : "") . sectionColor, Enable S4T
 Gui, Add, Checkbox, % "vs4tSilent x+5 " . (!s4tEnabled ? "Hidden " : "") . (s4tSilent ? "Checked " : "") . sectionColor, Silent (No Ping)
@@ -335,7 +351,7 @@ Gui, Add, Edit, vvipIdsURL w460 h20 y+5 -E0x200 Background2A2A2A cWhite, %vipIds
 
 ; GP Discord
 Gui, Tab, 2
-sectionColor := "cFF69B4" ; Hot pink
+sectionColor := "cWhite" ; "cFF69B4" ; Hot pink
 
 if(StrLen(discordUserID) < 3)
     discordUserID =
@@ -350,7 +366,7 @@ Gui, Add, Checkbox, % (sendAccountXml ? "Checked" : "") " vsendAccountXml y+7 " 
 
 ; Heartbeat Discord
 Gui, Tab, 3
-sectionColor := "c00FFFF" ; Cyan
+sectionColor := "cWhite" ; "c00FFFF" ; Cyan
 
 Gui, Add, Checkbox, % (heartBeat ? "Checked" : "") " vheartBeat x270 y350 gdiscordSettings " . sectionColor, Discord Heartbeat
 
@@ -382,13 +398,28 @@ Gui, Tab
 
 
 ; ========== Action Buttons ==========
-Gui, Add, Button, gOpenLink x5 y522 w117, Buy Me a Coffee
+Gui, Add, Button, gOpenLink x5 y580 w117, Buy Me a Coffee
 Gui, Add, Button, gOpenDiscord x+7 w117, Join Discord
 Gui, Add, Button, gArrangeWindows x+7 w118, Arrange Windows
 Gui, Add, Button, gLaunchAllMumu x+7 w118, Launch All Mumu
 Gui, Add, Button, gSaveReload x+7 w117, Reload
 Gui, Add, Button, gCheckForUpdates x+7 w117, Check Updates
 Gui, Add, Button, gStart x5 y+7 w740, START BOT
+
+
+; ========= Column 1-3 =========
+; ==============================
+
+; ========== Add-On Settings Section ==========
+sectionColor := "cWhite"
+Gui, Add, GroupBox, x5 y515 w740 h50 %sectionColor%, Extra Settings
+
+Gui, Add, Text, x15 y535 %sectionColor%, Tesseract Path:
+Gui, Add, Edit, vtesseractPath w300 x115 y534 h20 -E0x200 Background2A2A2A cWhite, %tesseractPath%
+Gui, Add, Checkbox, % (applyRoleFilters ? "Checked" : "") " vapplyRoleFilters x455 y535 " . sectionColor, Use Role-Based Filters
+Gui, Add, Checkbox, % (debugMode ? "Checked" : "") " vdebugMode x+7 y535 " . sectionColor, Debug Mode
+
+
 
 Gui, Show, , %localVersion% PTCGPB Bot Setup [Non-Commercial 4.0 International License]
 Return
@@ -515,16 +546,34 @@ ArrangeWindows:
     GuiControlGet, Instances,, Instances
     GuiControlGet, Columns,, Columns
     GuiControlGet, SelectedMonitorIndex,, SelectedMonitorIndex
-    if (runMain) {
+    
+    windowsPositioned := 0
+    
+    if (runMain && Mains > 0) {
         Loop %Mains% {
             mainInstanceName := "Main" . (A_Index > 1 ? A_Index : "")
-            resetWindows(mainInstanceName, SelectedMonitorIndex)
-            sleep, 10
+            if (WinExist(mainInstanceName)) {
+                resetWindows(mainInstanceName, SelectedMonitorIndex, false)
+                windowsPositioned++
+                sleep, 10
+            }
         }
     }
-    Loop %Instances% {
-        resetWindows(A_Index, SelectedMonitorIndex)
-        sleep, 10
+    
+    if (Instances > 0) {
+        Loop %Instances% {
+            if (WinExist(A_Index)) {
+                resetWindows(A_Index, SelectedMonitorIndex, false)
+                windowsPositioned++
+                sleep, 10
+            }
+        }
+    }
+    
+    if (debugMode && windowsPositioned == 0) {
+        MsgBox, No windows found to arrange
+    } else {
+        MsgBox, Arranged %windowsPositioned% windows
     }
 return
 
@@ -717,7 +766,7 @@ Start:
     IniWrite, %minStarsA2Palkia%, Settings.ini, UserSettings, minStarsA2Palkia
     IniWrite, %minStarsA2a%, Settings.ini, UserSettings, minStarsA2a
     IniWrite, %minStarsA2b%, Settings.ini, UserSettings, minStarsA2b
-
+	
     IniWrite, %heartBeatDelay%, Settings.ini, UserSettings, heartBeatDelay
     IniWrite, %sendAccountXml%, Settings.ini, UserSettings, sendAccountXml
 
@@ -732,6 +781,10 @@ Start:
     IniWrite, %s4tDiscordWebhookURL%, Settings.ini, UserSettings, s4tDiscordWebhookURL
     IniWrite, %s4tSendAccountXML%, Settings.ini, UserSettings, s4tSendAccountXML
     IniWrite, %s4tGholdengo%, Settings.ini, UserSettings, s4tGholdengo
+    
+	IniWrite, %tesseractPath%, Settings.ini, UserSettings, tesseractPath
+	IniWrite, %applyRoleFilters%, Settings.ini, UserSettings, applyRoleFilters
+	IniWrite, %debugMode%, Settings.ini, UserSettings, debugMode
 
     ; Using FriendID field to provide a URL to download ids.txt is deprecated.
     if (inStr(FriendID, "http")) {
@@ -862,6 +915,86 @@ Start:
     Loop {
         Sleep, 30000
 
+        ; Check if Main toggled GP Test Mode and send notification if needed
+        IniRead, mainTestMode, HeartBeat.ini, TestMode, Main, -1
+        if (mainTestMode != -1) {
+            ; Main has toggled test mode, get status and send notification
+            IniRead, mainStatus, HeartBeat.ini, HeartBeat, Main, 0
+            
+            onlineAHK := ""
+            offlineAHK := ""
+            Online := []
+
+            Loop %Instances% {
+                IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
+                if(value)
+                    Online.push(1)
+                else
+                    Online.Push(0)
+            }
+
+            for index, value in Online {
+                if(index = Online.MaxIndex())
+                    commaSeparate := ""
+                else
+                    commaSeparate := ", "
+                if(value)
+                    onlineAHK .= A_Index . commaSeparate
+                else
+                    offlineAHK .= A_Index . commaSeparate
+            }
+
+            if (runMain) {
+                if(mainStatus) {
+                    if (onlineAHK)
+                        onlineAHK := "Main, " . onlineAHK
+                    else
+                        onlineAHK := "Main"
+                }
+                else {
+                    if (offlineAHK)
+                        offlineAHK := "Main, " . offlineAHK
+                    else
+                        offlineAHK := "Main"
+                }
+            }
+
+            if(offlineAHK = "")
+                offlineAHK := "Offline: none"
+            else
+                offlineAHK := "Offline: " . RTrim(offlineAHK, ", ")
+            if(onlineAHK = "")
+                onlineAHK := "Online: none"
+            else
+                onlineAHK := "Online: " . RTrim(onlineAHK, ", ")
+
+            ; Create status message with all regular heartbeat info
+            discMessage := heartBeatName ? "\n" . heartBeatName : ""
+            discMessage .= "\n" . onlineAHK . "\n" . offlineAHK
+            
+            total := SumVariablesInJsonFile()
+            totalSeconds := Round((A_TickCount - rerollTime) / 1000)
+            mminutes := Floor(totalSeconds / 60)
+            packStatus := "Time: " . mminutes . "m | Packs: " . total
+            packStatus .= " | Avg: " . Round(total / mminutes, 2) . " packs/min"
+            
+            discMessage .= "\n" . packStatus . "\nVersion: " . RegExReplace(githubUser, "-.*$") . "-" . localVersion
+            discMessage .= typeMsg
+            discMessage .= selectMsg
+            
+            ; Add special note about Main's test mode status
+            if (mainTestMode == "1")
+                discMessage .= "\n\nMain entered GP Test Mode ✕" ;We can change this later
+            else
+                discMessage .= "\n\nMain exited GP Test Mode ✓" ;We can change this later
+                
+            ; Send the message
+            LogToDiscord(discMessage,, false,,, heartBeatWebhookURL)
+            
+            ; Clear the flag
+            IniDelete, HeartBeat.ini, TestMode, Main
+        }
+
         ; Every 5 minutes, pull down the main ID list
         if(mainIdsURL != "" && Mod(A_Index, 10) = 0) {
             DownloadFile(mainIdsURL, "ids.txt")
@@ -942,71 +1075,6 @@ Return
 
 GuiClose:
 ExitApp
-
-MonthToDays(year, month) {
-    static DaysInMonths := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    days := 0
-    Loop, % month - 1 {
-        days += DaysInMonths[A_Index]
-    }
-    if (month > 2 && IsLeapYear(year))
-        days += 1
-    return days
-}
-
-IsLeapYear(year) {
-    return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0
-}
-
-DownloadFile(url, filename) {
-    url := url  ; Change to your hosted .txt URL "https://pastebin.com/raw/vYxsiqSs"
-    localPath = %A_ScriptDir%\%filename% ; Change to the folder you want to save the file
-
-    URLDownloadToFile, %url%, %localPath%
-
-    ; if ErrorLevel
-    ; MsgBox, Download failed!
-    ; else
-    ; MsgBox, File downloaded successfully!
-
-}
-
-resetWindows(Title, SelectedMonitorIndex) {
-    global Columns, runMain, Mains, scaleParam
-    RetryCount := 0
-    MaxRetries := 10
-    Loop
-    {
-        try {
-            ; Get monitor origin from index
-            SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
-            SysGet, Monitor, Monitor, %SelectedMonitorIndex%
-            if (runMain) {
-                if (InStr(Title, "Main") = 1) {
-                    instanceIndex := StrReplace(Title, "Main", "")
-                    if (instanceIndex = "")
-                        instanceIndex := 1
-                } else {
-                    instanceIndex := (Mains - 1) + Title + 1
-                }
-            } else {
-                instanceIndex := Title
-            }
-            rowHeight := 533  ; Adjust the height of each row
-            currentRow := Floor((instanceIndex - 1) / Columns)
-            y := currentRow * rowHeight
-            x := Mod((instanceIndex - 1), Columns) * scaleParam
-            WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
-            break
-        }
-        catch {
-            if (RetryCount > MaxRetries)
-                Pause
-        }
-        Sleep, 1000
-    }
-    return true
-}
 
 DisplayPackStatus(Message, X := 0, Y := 80) {
     global SelectedMonitorIndex
@@ -1322,20 +1390,59 @@ VersionCompare(v1, v2) {
     return 0 ; Versions are equal
 }
 
-ReadFile(filename, numbers := false) {
-    FileRead, content, %A_ScriptDir%\%filename%.txt
 
-    if (!content)
-        return false
+; New hotkey for sending "All Offline" message
+~+F7::
+    SendAllInstancesOfflineStatus()
+return
 
-    values := []
-    for _, val in StrSplit(Trim(content), "`n") {
-        cleanVal := RegExReplace(val, "[^a-zA-Z0-9]") ; Remove non-alphanumeric characters
-        if (cleanVal != "")
-            values.Push(cleanVal)
+; Function to send a Discord message with all instances marked as offline
+SendAllInstancesOfflineStatus() {
+    global heartBeatName, heartBeatWebhookURL, localVersion, githubUser, Instances, runMain, Mains
+    global typeMsg, selectMsg, rerollTime, scaleParam
+    
+    ; Display visual feedback that the hotkey was triggered
+    DisplayPackStatus("Shift+F7 pressed - Sending offline heartbeat to Discord...", ((runMain ? Mains * scaleParam : 0) + 5), 490)
+    
+    ; Create message showing all instances as offline
+    offlineInstances := ""
+    if (runMain) {
+        offlineInstances := "Main"
+        if (Mains > 1) {
+            Loop, % Mains - 1
+                offlineInstances .= ", Main" . (A_Index + 1)
+        }
+        if (Instances > 0)
+            offlineInstances .= ", "
     }
-
-    return values.MaxIndex() ? values : false
+    
+    Loop, %Instances% {
+        offlineInstances .= A_Index
+        if (A_Index < Instances)
+            offlineInstances .= ", "
+    }
+    
+    ; Create status message with heartbeat info
+    discMessage := heartBeatName ? "\n" . heartBeatName : ""
+    discMessage .= "\nOnline: none"
+    discMessage .= "\nOffline: " . offlineInstances
+    
+    ; Add pack statistics
+    total := SumVariablesInJsonFile()
+    totalSeconds := Round((A_TickCount - rerollTime) / 1000)
+    mminutes := Floor(totalSeconds / 60)
+    packStatus := "Time: " . mminutes . "m | Packs: " . total
+    packStatus .= " | Avg: " . Round(total / mminutes, 2) . " packs/min"
+    
+    discMessage .= "\n" . packStatus . "\nVersion: " . RegExReplace(githubUser, "-.*$") . "-" . localVersion
+    discMessage .= typeMsg
+    discMessage .= selectMsg
+    discMessage .= "\n\n All instances marked as OFFLINE" ; We can change this later
+    
+    ; Send the message and log it
+    LogToDiscord(discMessage,, false,,, heartBeatWebhookURL)
+    
+    ; Display confirmation in the status bar
+    DisplayPackStatus("Discord notification sent: All instances marked as OFFLINE", ((runMain ? Mains * scaleParam : 0) + 5), 490)
+    ExitApp
 }
-
-~+F7::ExitApp

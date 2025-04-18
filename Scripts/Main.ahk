@@ -1,18 +1,14 @@
-#Include %A_ScriptDir%\Include\Logging.ahk
-#Include %A_ScriptDir%\Include\ADB.ahk
+#Include %A_ScriptDir%\Include\Logger_Module.ahk
 #Include %A_ScriptDir%\Include\Gdip_All.ahk
 #Include %A_ScriptDir%\Include\Gdip_Imagesearch.ahk
-
+#Include %A_ScriptDir%\Include\Utils.ahk
 #Include *i %A_ScriptDir%\Include\Gdip_Extra.ahk
 #Include *i %A_ScriptDir%\Include\StringCompare.ahk
 #Include *i %A_ScriptDir%\Include\OCR.ahk
 
 #SingleInstance on
-;SetKeyDelay, -1, -1
 SetMouseDelay, -1
 SetDefaultMouseSpeed, 0
-;SetWinDelay, -1
-;SetControlDelay, -1
 SetBatchLines, -1
 SetTitleMatchMode, 3
 CoordMode, Pixel, Screen
@@ -22,7 +18,10 @@ DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
 global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, scriptName, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
-global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b, vipIdsURL
+global triggerTestNeeded, testStartTime, firstRun, minStars, minStarsA2b, vipIdsURL, tesseractPath
+global statusLastMessage := {}
+global statusLastUpdateTime := {}
+global statusUpdateInterval := 2 ; Seconds between updates of the same message
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -30,10 +29,13 @@ winTitle := scriptName
 pauseToggle := false
 showStatus := true
 jsonFileName := A_ScriptDir . "\..\json\Packs.json"
+
 IniRead, FriendID, %A_ScriptDir%\..\Settings.ini, UserSettings, FriendID
 IniRead, Instances, %A_ScriptDir%\..\Settings.ini, UserSettings, Instances
 IniRead, Delay, %A_ScriptDir%\..\Settings.ini, UserSettings, Delay, 250
 IniRead, folderPath, %A_ScriptDir%\..\Settings.ini, UserSettings, folderPath, C:\Program Files\Netease
+IniRead, discordWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, discordWebhookURL, ""
+IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
 IniRead, Variation, %A_ScriptDir%\..\Settings.ini, UserSettings, Variation, 20
 IniRead, Columns, %A_ScriptDir%\..\Settings.ini, UserSettings, Columns, 5
 IniRead, openPack, %A_ScriptDir%\..\Settings.ini, UserSettings, openPack, 1
@@ -53,6 +55,11 @@ IniRead, ocrLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, ocrLanguage, 
 IniRead, clientLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, clientLanguage, en
 IniRead, minStars, %A_ScriptDir%\..\Settings.ini, UserSettings, minStars, 0
 IniRead, minStarsA2b, %A_ScriptDir%\..\Settings.ini, UserSettings, minStarsA2b, 0
+IniRead, tesseractPath, %A_ScriptDir%\..\Settings.ini, UserSettings, tesseractPath, C:\Program Files\Tesseract-OCR\tesseract.exe
+IniRead, debugMode, %A_ScriptDir%\..\Settings.ini, UserSettings, debugMode, 0
+
+InitLogger()
+
 
 ; connect adb
 instanceSleep := scriptName * 1000
@@ -68,58 +75,20 @@ if (InStr(defaultLanguage, "100")) {
 }
 
 resetWindows()
-MaxRetries := 10
-RetryCount := 0
-Loop {
-    try {
-        WinGetPos, x, y, Width, Height, %winTitle%
-        sleep, 2000
-        ;Winset, Alwaysontop, On, %winTitle%
-        OwnerWND := WinExist(winTitle)
-        x4 := x + 5
-        y4 := y + 44
-        buttonWidth := 35
-        if (scaleParam = 287)
-            buttonWidth := buttonWidth + 6
-
-        Gui, Toolbar: New, +Owner%OwnerWND% -AlwaysOnTop +ToolWindow -Caption +LastFound
-        Gui, Toolbar: Default
-        Gui, Toolbar: Margin, 4, 4  ; Set margin for the GUI
-        Gui, Toolbar: Font, s5 cGray Norm Bold, Segoe UI  ; Normal font for input labels
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 0) . " y0 w" . buttonWidth . " h25 gReloadScript", Reload  (Shift+F5)
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 1) . " y0 w" . buttonWidth . " h25 gPauseScript", Pause (Shift+F6)
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 2) . " y0 w" . buttonWidth . " h25 gResumeScript", Resume (Shift+F6)
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 3) . " y0 w" . buttonWidth . " h25 gStopScript", Stop (Shift+F7)
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 4) . " y0 w" . buttonWidth . " h25 gShowStatusMessages", Status (Shift+F8)
-        Gui, Toolbar: Add, Button, % "x" . (buttonWidth * 5) . " y0 w" . buttonWidth . " h25 gTestScript", GP Test (Shift+F9)
-        DllCall("SetWindowPos", "Ptr", WinExist(), "Ptr", 1  ; HWND_BOTTOM
-                , "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE
-        Gui, Toolbar: Show, NoActivate x%x4% y%y4% AutoSize
-        break
-    }
-    catch {
-        RetryCount++
-        if (RetryCount >= MaxRetries) {
-            CreateStatusMessage("Failed to create button GUI.",,,, false)
-            break
-        }
-        Sleep, 1000
-    }
-    Sleep, %Delay%
-    CreateStatusMessage("Creating button GUI...",,,, false)
-}
 
 rerollTime := A_TickCount
 
 initializeAdbShell()
-CreateStatusMessage("Initializing bot...",,,, false)
+CreateStatusMessage("Initializing bot...")
 restartGameInstance("Initializing bot...", false)
 pToken := Gdip_Startup()
 
 if(heartBeat)
     IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
 FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 150)
-firstRun := true
+LogInfo("Waiting for the game to load...")
+if (!debugMode)
+	firstRun := True
 
 global 99Configs := {}
 99Configs["en"] := {leftx: 123, rightx: 162}
@@ -146,89 +115,89 @@ if (scaleParam = 287) {
 99Path := "99" . clientLanguage
 99Leftx := 99Configs[clientLanguage].leftx
 99Rightx := 99Configs[clientLanguage].rightx
-
 Loop {
-    if (GPTest) {
-        if (triggerTestNeeded)
-            GPTestScript()
-        Sleep, 1000
-        if (heartBeat && (Mod(A_Index, 60) = 0))
-            IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
-        Continue
-    }
-
-    if(heartBeat)
-        IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
-    Sleep, %Delay%
-    FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 30)
-    FindImageAndClick(226, 100, 270, 135, , "Add", 38, 460, 500)
-    FindImageAndClick(170, 450, 195, 480, , "Approve", 228, 464)
-    if(firstRun) {
-        Sleep, 1000
-        adbClick(205, 510)
-        Sleep, 1000
-        adbClick(210, 372)
-        firstRun := false
-    }
-    done := false
-    Loop 3 {
-        Sleep, %Delay%
-        if(FindOrLoseImage(225, 195, 250, 215, , "Pending", 0)) {
-            failSafe := A_TickCount
-            failSafeTime := 0
-            Loop {
-                Sleep, %Delay%
-                clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime) ;looking for ok button in case an invite is withdrawn
-                if(FindOrLoseImage(99Leftx, 110, 99Rightx, 127, , 99Path, 0, failSafeTime)) {
-                    done := true
-                    break
-                } else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0, failSafeTime)) {
-                    if (GPTest)
-                        break
-                    Sleep, %Delay%
-                    adbClick(210, 210)
-                    Sleep, 1000
-                } else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0, failSafeTime)) {
-                    if (GPTest)
-                        break
-                    adbClick(245, 210)
-                } else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0, failSafeTime)) {
-                    done := true
-                    break
-                } else if(clickButton) {
-                    StringSplit, pos, clickButton, `,  ; Split at ", "
-                    if (scaleParam = 287) {
-                        pos2 += 5
-                    }
-                    Sleep, 1000
-                    if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", pos1, pos2, 4000)) {
-                        Sleep, %Delay%
-                        adbClick(210, 210)
-                    }
-                }
-                if (GPTest)
-                    break
-                failSafeTime := (A_TickCount - failSafe) // 1000
-                CreateStatusMessage("Failsafe " . failSafeTime . "/180 seconds")
-            }
-        }
-        if(done || fullList|| GPTest)
-            break
-    }
+	if (GPTest) {
+		if (triggerTestNeeded)
+			GPTestScript()
+		Sleep, 1000
+		if (heartBeat && (Mod(A_Index, 60) = 0))
+			IniWrite, 0, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+		Continue
+	}
+	LogInfo("Adding Friends...")
+	if(heartBeat)
+		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+	Sleep, %Delay%
+	FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 30)
+	FindImageAndClick(226, 100, 270, 135, , "Add", 38, 460, 500)
+	FindImageAndClick(170, 450, 195, 480, , "Approve", 228, 464)
+	if(firstRun) {
+		Sleep, 1000
+		adbClick(205, 510)
+		Sleep, 1000
+		adbClick(210, 372)
+		firstRun := false
+	}
+	done := false
+	Loop 3 {
+		Sleep, %Delay%
+		if(FindOrLoseImage(225, 195, 250, 215, , "Pending", 0)) {
+			failSafe := A_TickCount
+			failSafeTime := 0
+			Loop {
+				Sleep, %Delay%
+				clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime) ;looking for ok button in case an invite is withdrawn
+				if(FindOrLoseImage(99Leftx, 110, 99Rightx, 127, , 99Path, 0, failSafeTime)) {
+					done := true
+					break
+				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0, failSafeTime)) {
+					if (GPTest)
+						break
+					Sleep, %Delay%
+					adbClick(210, 210)
+					Sleep, 1000
+				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0, failSafeTime)) {
+					if (GPTest)
+						break
+					adbClick(245, 210)
+				} else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0, failSafeTime)) {
+					done := true
+					break
+				} else if(clickButton) {
+					StringSplit, pos, clickButton, `,  ; Split at ", "
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
+					Sleep, 1000
+					if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", pos1, pos2, 4000)) {
+						Sleep, %Delay%
+						adbClick(210, 210)
+					}
+				}
+				if (GPTest)
+					break
+				failSafeTime := (A_TickCount - failSafe) // 1000
+				LogDebug("Failsafe " . failSafeTime "/180 seconds")
+			}
+		}
+		if(done || fullList|| GPTest)
+			break
+	}
 }
 return
 
 FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", EL := 1, safeTime := 0) {
-    global winTitle, Variation, failSafe
-    if(searchVariation = "")
-        searchVariation := Variation
-    imagePath := A_ScriptDir . "\" . defaultLanguage . "\"
-    confirmed := false
+	global winTitle, Variation, failSafe, statusLastMessage, statusLastUpdateTime, statusUpdateInterval
+	if(searchVariation = "")
+		searchVariation := Variation
+	imagePath := A_ScriptDir . "\" . defaultLanguage . "\"
+	confirmed := false
 
-    CreateStatusMessage("Finding " . imageName . "...")
-    pBitmap := from_window(WinExist(winTitle))
-    Path = %imagePath%%imageName%.png
-    pNeedle := GetNeedle(Path)
+	CreateStatusMessage(imageName)
+	LogDebug("Looking for image: " . imageName)
+	pBitmap := from_window(WinExist(winTitle))
+	Path = %imagePath%%imageName%.png
+	pNeedle := GetNeedle(Path)
 
     ; 100% scale changes
     if (scaleParam = 287) {
@@ -249,57 +218,59 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
     }
     ;bboxAndPause(X1, Y1, X2, Y2)
 
-    ; ImageSearch within the region
-    vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, X1, Y1, X2, Y2, searchVariation)
-    Gdip_DisposeImage(pBitmap)
-    if(EL = 0)
-        GDEL := 1
-    else
-        GDEL := 0
-    if (!confirmed && vRet = GDEL && GDEL = 1) {
-        confirmed := vPosXY
-    } else if(!confirmed && vRet = GDEL && GDEL = 0) {
-        confirmed := true
-    }
-    pBitmap := from_window(WinExist(winTitle))
-    Path = %imagePath%App.png
-    pNeedle := GetNeedle(Path)
-    ; ImageSearch within the region
-    vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
-    Gdip_DisposeImage(pBitmap)
-    if (vRet = 1) {
-        LogToFile("Stuck at home while looking for " . imageName . "...")
-        restartGameInstance("Stuck at " . imageName . "...")
-    }
-    if(imageName = "Country" || imageName = "Social")
-        FSTime := 90
-    else if(imageName = "Button")
-        FSTime := 240
-    else
-        FSTime := 180
-    if (safeTime >= FSTime) {
-        LogToFile("Instance " . scriptName . " has been stuck at " . imageName . " for 90s. (EL: " . EL . ", sT: " . safeTime . ") Killing it...")
-        restartGameInstance("Stuck at " . imageName . "...")
-        failSafe := A_TickCount
-    }
-    return confirmed
+	; ImageSearch within the region
+	vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, X1, Y1, X2, Y2, searchVariation)
+	Gdip_DisposeImage(pBitmap)
+	if(EL = 0)
+		GDEL := 1
+	else
+		GDEL := 0
+	if (!confirmed && vRet = GDEL && GDEL = 1) {
+		confirmed := vPosXY
+	} else if(!confirmed && vRet = GDEL && GDEL = 0) {
+		confirmed := true
+	}
+	pBitmap := from_window(WinExist(winTitle))
+	Path = %imagePath%App.png
+	pNeedle := GetNeedle(Path)
+	; ImageSearch within the region
+	vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
+	Gdip_DisposeImage(pBitmap)
+	if (vRet = 1) {
+		CreateStatusMessage("At home page. Opening app..." )
+		LogWarning("At home page during image search. Opening app...")
+		restartGameInstance("At the home page during: " imageName)
+	}
+	if(imageName = "Country" || imageName = "Social")
+		FSTime := 90
+	else if(imageName = "Button")
+		FSTime := 240
+	else
+		FSTime := 180
+	if (safeTime >= FSTime) {
+		CreateStatusMessage("Instance has been stuck `n" . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
+		LogError("Instance has been stuck " . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
+		restartGameInstance("Instance has been stuck " . imageName)
+		failSafe := A_TickCount
+	}
+	return confirmed
 }
 
 FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", clickx := 0, clicky := 0, sleepTime := "", skip := false, safeTime := 0) {
-    global winTitle, Variation, failSafe, confirmed
-    if(searchVariation = "")
-        searchVariation := Variation
-    if (sleepTime = "") {
-        global Delay
-        sleepTime := Delay
-    }
-    imagePath := A_ScriptDir . "\" defaultLanguage "\"
-    click := false
-    if(clickx > 0 and clicky > 0)
-        click := true
-    x := 0
-    y := 0
-    StartSkipTime := A_TickCount
+	global winTitle, Variation, failSafe, confirmed, statusLastMessage, statusLastUpdateTime, statusUpdateInterval
+	if(searchVariation = "")
+		searchVariation := Variation
+	if (sleepTime = "") {
+		global Delay
+		sleepTime := Delay
+	}
+	imagePath := A_ScriptDir . "\" defaultLanguage "\"
+	click := false
+	if(clickx > 0 and clicky > 0)
+		click := true
+	x := 0
+	y := 0
+	StartSkipTime := A_TickCount
 
     confirmed := false
 
@@ -322,72 +293,84 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
         }
     }
 
-    if(click) {
-        adbClick(clickx, clicky)
-        clickTime := A_TickCount
-    }
-    CreateStatusMessage("Finding and clicking " . imageName . "...")
+	if(click) {
+		adbClick(clickx, clicky)
+		clickTime := A_TickCount
+	}
+	CreateStatusMessage(imageName)
+	LogDebug("Looking for image: " . imageName . " to click")
 
-    Loop { ; Main loop
-        Sleep, 10
-        if(click) {
-            ElapsedClickTime := A_TickCount - clickTime
-            if(ElapsedClickTime > sleepTime) {
-                adbClick(clickx, clicky)
-                clickTime := A_TickCount
-            }
-        }
+	messageTime := 0
+	firstTime := true
+	Loop { ; Main loop
+		Sleep, 10
+		if(click) {
+			ElapsedClickTime := A_TickCount - clickTime
+			if(ElapsedClickTime > sleepTime) {
+				adbClick(clickx, clicky)
+				clickTime := A_TickCount
+			}
+		}
 
         if (confirmed) {
             continue
         }
 
-        pBitmap := from_window(WinExist(winTitle))
-        Path = %imagePath%%imageName%.png
-        pNeedle := GetNeedle(Path)
-        ;bboxAndPause(X1, Y1, X2, Y2)
-        ; ImageSearch within the region
-        vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, X1, Y1, X2, Y2, searchVariation)
-        Gdip_DisposeImage(pBitmap)
-        if (!confirmed && vRet = 1) {
-            confirmed := vPosXY
-        } else {
-            if(skip < 45) {
-                ElapsedTime := (A_TickCount - StartSkipTime) // 1000
-                FSTime := 45
-                if (ElapsedTime >= FSTime || safeTime >= FSTime) {
-                    LogToFile("Instance " . scriptName . " has been stuck at " . imageName . " for 90s. (EL: " . ElapsedTime . ", sT: " . safeTime . ") Killing it...")
-                    restartGameInstance("Stuck at " . imageName . "...") ; change to reset the instance and delete data then reload script
-                    StartSkipTime := A_TickCount
-                    failSafe := A_TickCount
-                }
-            }
-        }
+		pBitmap := from_window(WinExist(winTitle))
+		Path = %imagePath%%imageName%.png
+		pNeedle := GetNeedle(Path)
+		;bboxAndPause(X1, Y1, X2, Y2)
+		; ImageSearch within the region
+		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, X1, Y1, X2, Y2, searchVariation)
+		Gdip_DisposeImage(pBitmap)
+		if (!confirmed && vRet = 1) {
+			confirmed := vPosXY
+		} else {
+			if(skip < 45) {
+				ElapsedTime := (A_TickCount - StartSkipTime) // 1000
+				FSTime := 45
+				if (ElapsedTime >= FSTime || safeTime >= FSTime) {
+					CreateStatusMessage("Instance has been stuck for 90s. Killing it...")
+					LogError("Instance has been stuck for 90s looking for " . imageName . ". Killing it...")
+					restartGameInstance("Instance has been stuck at " . imageName) ; change to reset the instance and delete data then reload script
+					StartSkipTime := A_TickCount
+					failSafe := A_TickCount
+				}
+			} else {
+				ElapsedTime := (A_TickCount - StartSkipTime) // 1000
+				if(ElapsedTime - messageTime > 0.5 || firstTime) {
+					LogDebug("Looking for " . imageName . " for " . ElapsedTime . "/" . FSTime . " seconds")
+					messageTime := ElapsedTime
+					firstTime := false
+				}
+			}
+		}
 
-        pBitmap := from_window(WinExist(winTitle))
-        Path = %imagePath%Error1.png
-        pNeedle := GetNeedle(Path)
-        ; ImageSearch within the region
-        vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
-        Gdip_DisposeImage(pBitmap)
-        if (vRet = 1) {
-            CreateStatusMessage("Error message in " . scriptName . ". Clicking retry...")
-            LogToFile("Error message in " . scriptName . ". Clicking retry...")
-            adbClick(82, 389)
-            Sleep, %Delay%
-            adbClick(139, 386)
-            Sleep, 1000
-        }
-        pBitmap := from_window(WinExist(winTitle))
-        Path = %imagePath%App.png
-        pNeedle := GetNeedle(Path)
-        ; ImageSearch within the region
-        vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
-        Gdip_DisposeImage(pBitmap)
-        if (vRet = 1) {
-            LogToFile("At the home page while looking for " . imageName . "...")
-            restartGameInstance("At the home page while looking for " . imageName . "...")
-        }
+		pBitmap := from_window(WinExist(winTitle))
+		Path = %imagePath%Error1.png
+		pNeedle := GetNeedle(Path)
+		; ImageSearch within the region
+		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
+		Gdip_DisposeImage(pBitmap)
+		if (vRet = 1) {
+			CreateStatusMessage("Error message, Clicking retry..." )
+			LogError("Error message, Clicking retry..." )
+			adbClick(82, 389)
+			Sleep, %Delay%
+			adbClick(139, 386)
+			Sleep, 1000
+		}
+		pBitmap := from_window(WinExist(winTitle))
+		Path = %imagePath%App.png
+		pNeedle := GetNeedle(Path)
+		; ImageSearch within the region
+		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 15, 155, 270, 420, searchVariation)
+		Gdip_DisposeImage(pBitmap)
+		if (vRet = 1) {
+			CreateStatusMessage("At home page. Opening app..." )
+			LogWarning("At home page during image search. Opening app...")
+			restartGameInstance("Found myself at the home page during: " imageName)
+		}
 
         if(skip) {
             ElapsedTime := (A_TickCount - StartSkipTime) // 1000
@@ -405,65 +388,29 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
     return confirmed
 }
 
-resetWindows(){
-    global Columns, winTitle, SelectedMonitorIndex, scaleParam
-    CreateStatusMessage("Arranging window positions and sizes")
-    RetryCount := 0
-    MaxRetries := 10
-    Loop
-    {
-        try {
-            ; Get monitor origin from index
-            SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
-            SysGet, Monitor, Monitor, %SelectedMonitorIndex%
-            Title := winTitle
+restartGameInstance(reason, RL := true) {
+    global debugMode, Delay, scriptName, adbShell, adbPath, adbPort
 
-            instanceIndex := StrReplace(Title, "Main", "")
-            if (instanceIndex = "")
-                instanceIndex := 1
+	if (debugMode)
+		return
 
-            rowHeight := 533  ; Adjust the height of each row
-            currentRow := Floor((instanceIndex - 1) / Columns)
-            y := currentRow * rowHeight
-            x := Mod((instanceIndex - 1), Columns) * scaleParam
-            WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
-            break
-        }
-        catch {
-            if (RetryCount > MaxRetries)
-                CreateStatusMessage("Pausing. Can't find window " . winTitle . ".",,,, false)
-            Pause
-        }
-        Sleep, 1000
-    }
-    return true
-}
-
-restartGameInstance(reason, RL := true){
-    global Delay, scriptName, adbShell, adbPath, adbPort
-    initializeAdbShell()
-
-    if (Debug)
-        CreateStatusMessage("Restarting game reason:`n" . reason)
-    else
-        CreateStatusMessage("Restarting game...",,,, false)
+	initializeAdbShell()
+	CreateStatusMessage("Restarting game reason: `n" reason)
+	LogRestart("Restarting game reason: " . reason)
 
     adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
     ;adbShell.StdIn.WriteLine("rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*") ; clear cache
     Sleep, 3000
     adbShell.StdIn.WriteLine("am start -n jp.pokemon.pokemontcgp/com.unity3d.player.UnityPlayerActivity")
 
-    Sleep, 3000
-    if(RL) {
-        LogToFile("Restarted game for instance " . scriptName . ". Reason: " reason, "Restart.txt")
-        Reload
-    }
+	Sleep, 3000
+	if(RL) {
+		LogRestart("Restarted game, reason: " . reason)
+		LogToDiscord("Main restarted, reason: " . reason, , true)
+		Reload
+	}
 }
 
-ControlClick(X, Y) {
-    global winTitle
-    ControlClick, x%X% y%Y%, %winTitle%
-}
 
 RandomUsername() {
     FileRead, content, %A_ScriptDir%\..\usernames.txt
@@ -477,41 +424,26 @@ RandomUsername() {
     return values[randomIndex]
 }
 
-Screenshot(filename := "Valid") {
-    global packs
-    SetWorkingDir %A_ScriptDir%  ; Ensures the working directory is the script's directory
-
-    ; Define folder and file paths
-    screenshotsDir := A_ScriptDir "\..\Screenshots"
-    if !FileExist(screenshotsDir)
-        FileCreateDir, %screenshotsDir%
-
-    ; File path for saving the screenshot locally
-    screenshotFile := screenshotsDir "\" . A_Now . "_" . winTitle . "_" . filename . "_" . packs . "_packs.png"
-
-    pBitmap := from_window(WinExist(winTitle))
-    Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
-
-    return screenshotFile
-}
-
 ; Pause Script
 PauseScript:
-    CreateStatusMessage("Pausing...",,,, false)
-    Pause, On
+	CreateStatusMessage("Pausing...")
+	LogInfo("Pausing...")
+	Pause, On
 return
 
 ; Resume Script
 ResumeScript:
-    CreateStatusMessage("Resuming...",,,, false)
-    Pause, Off
-    StartSkipTime := A_TickCount ;reset stuck timers
-    failSafe := A_TickCount
+	CreateStatusMessage("Resuming...")
+	LogInfo("Resuming...")
+	Pause, Off
+	StartSkipTime := A_TickCount ;reset stuck timers
+	failSafe := A_TickCount
 return
 
 ; Stop Script
 StopScript:
-    CreateStatusMessage("Stopping script...",,,, false)
+	CreateStatusMessage("Stopping script...")
+	LogInfo("Stopping script...")
 ExitApp
 return
 
@@ -528,12 +460,21 @@ TestScript:
 return
 
 ToggleTestScript() {
-    global GPTest, triggerTestNeeded, testStartTime, firstRun
+    global GPTest, triggerTestNeeded, testStartTime, firstRun, heartBeat
     if(!GPTest) {
         GPTest := true
         triggerTestNeeded := true
         testStartTime := A_TickCount
-        CreateStatusMessage("In GP Test Mode",,,, false)
+        
+        ; Only update HeartBeat.ini if heartBeat is enabled
+        if (heartBeat) {
+            IniWrite, 0, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+            IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, TestMode, Main
+            LogInfo("Setting HeartBeat status to offline and enabling TestMode notification")
+        }
+        
+        CreateStatusMessage("In GP Test Mode")
+        LogInfo("In GP Test Mode")
         StartSkipTime := A_TickCount ;reset stuck timers
         failSafe := A_TickCount
     }
@@ -546,7 +487,16 @@ ToggleTestScript() {
             firstRun := True
             testStartTime := ""
         }
-        CreateStatusMessage("Exiting GP Test Mode",,,, false)
+        
+        ; Only update HeartBeat.ini if heartBeat is enabled
+        if (heartBeat) {
+            IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
+            IniWrite, 2, %A_ScriptDir%\..\HeartBeat.ini, TestMode, Main
+            LogInfo("Setting HeartBeat status to online and enabling TestMode exit notification")
+        }
+        
+        CreateStatusMessage("Exiting GP Test Mode")
+        LogInfo("Exiting GP Test Mode")
     }
 }
 
@@ -555,203 +505,11 @@ FriendAdded() {
     AddFriend++
 }
 
-; Function to create or select the JSON file
-InitializeJsonFile() {
-    global jsonFileName
-    fileName := A_ScriptDir . "\..\json\Packs.json"
-    if !FileExist(fileName) {
-        ; Create a new file with an empty JSON array
-        FileAppend, [], %fileName%  ; Write an empty JSON array
-        jsonFileName := fileName
-        return
-    }
-}
-
-; Function to append a time and variable pair to the JSON file
-AppendToJsonFile(variableValue) {
-    global jsonFileName
-    if (jsonFileName = "") {
-        return
-    }
-
-    ; Read the current content of the JSON file
-    FileRead, jsonContent, %jsonFileName%
-    if (jsonContent = "") {
-        jsonContent := "[]"
-    }
-
-    ; Parse and modify the JSON content
-    jsonContent := SubStr(jsonContent, 1, StrLen(jsonContent) - 1) ; Remove trailing bracket
-    if (jsonContent != "[")
-        jsonContent .= ","
-    jsonContent .= "{""time"": """ A_Now """, ""variable"": " variableValue "}]"
-
-    ; Write the updated JSON back to the file
-    FileDelete, %jsonFileName%
-    FileAppend, %jsonContent%, %jsonFileName%
-}
-
-; Function to sum all variable values in the JSON file
-SumVariablesInJsonFile() {
-    global jsonFileName
-    if (jsonFileName = "") {
-        return 0
-    }
-
-    ; Read the file content
-    FileRead, jsonContent, %jsonFileName%
-    if (jsonContent = "") {
-        return 0
-    }
-
-    ; Parse the JSON and calculate the sum
-    sum := 0
-    ; Clean and parse JSON content
-    jsonContent := StrReplace(jsonContent, "[", "") ; Remove starting bracket
-    jsonContent := StrReplace(jsonContent, "]", "") ; Remove ending bracket
-    Loop, Parse, jsonContent, {, }
-    {
-        ; Match each variable value
-        if (RegExMatch(A_LoopField, """variable"":\s*(-?\d+)", match)) {
-            sum += match1
-        }
-    }
-
-    ; Write the total sum to a file called "total.json"
-    totalFile := A_ScriptDir . "\json\total.json"
-    totalContent := "{""total_sum"": " sum "}"
-    FileDelete, %totalFile%
-    FileAppend, %totalContent%, %totalFile%
-
-    return sum
-}
-
-from_window(ByRef image) {
-    ; Thanks tic - https://www.autohotkey.com/boards/viewtopic.php?t=6517
-
-    ; Get the handle to the window.
-    image := (hwnd := WinExist(image)) ? hwnd : image
-
-    ; Restore the window if minimized! Must be visible for capture.
-    if DllCall("IsIconic", "ptr", image)
-        DllCall("ShowWindow", "ptr", image, "int", 4)
-
-    ; Get the width and height of the client window.
-    VarSetCapacity(Rect, 16) ; sizeof(RECT) = 16
-    DllCall("GetClientRect", "ptr", image, "ptr", &Rect)
-        , width  := NumGet(Rect, 8, "int")
-        , height := NumGet(Rect, 12, "int")
-
-    ; struct BITMAPINFOHEADER - https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
-    hdc := DllCall("CreateCompatibleDC", "ptr", 0, "ptr")
-    VarSetCapacity(bi, 40, 0)                ; sizeof(bi) = 40
-        , NumPut(       40, bi,  0,   "uint") ; Size
-        , NumPut(    width, bi,  4,   "uint") ; Width
-        , NumPut(  -height, bi,  8,    "int") ; Height - Negative so (0, 0) is top-left.
-        , NumPut(        1, bi, 12, "ushort") ; Planes
-        , NumPut(       32, bi, 14, "ushort") ; BitCount / BitsPerPixel
-        , NumPut(        0, bi, 16,   "uint") ; Compression = BI_RGB
-        , NumPut(        3, bi, 20,   "uint") ; Quality setting (3 = low quality, no anti-aliasing)
-    hbm := DllCall("CreateDIBSection", "ptr", hdc, "ptr", &bi, "uint", 0, "ptr*", pBits:=0, "ptr", 0, "uint", 0, "ptr")
-    obm := DllCall("SelectObject", "ptr", hdc, "ptr", hbm, "ptr")
-
-    ; Print the window onto the hBitmap using an undocumented flag. https://stackoverflow.com/a/40042587
-    DllCall("PrintWindow", "ptr", image, "ptr", hdc, "uint", 0x3) ; PW_CLIENTONLY | PW_RENDERFULLCONTENT
-    ; Additional info on how this is implemented: https://www.reddit.com/r/windows/comments/8ffr56/altprintscreen/
-
-    ; Convert the hBitmap to a Bitmap using a built in function as there is no transparency.
-    DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "ptr", hbm, "ptr", 0, "ptr*", pBitmap:=0)
-
-    ; Cleanup the hBitmap and device contexts.
-    DllCall("SelectObject", "ptr", hdc, "ptr", obm)
-    DllCall("DeleteObject", "ptr", hbm)
-    DllCall("DeleteDC",     "ptr", hdc)
-
-    return pBitmap
-}
-
 ~+F5::Reload
 ~+F6::Pause
 ~+F7::ExitApp
 ~+F8::ToggleStatusMessages()
 ~+F9::ToggleTestScript() ; hoytdj Add
-
-ToggleStatusMessages() {
-    if(showStatus)
-        showStatus := False
-    else
-        showStatus := True
-}
-
-bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
-    BoxWidth := X2-X1
-    BoxHeight := Y2-Y1
-    ; Create a GUI
-    Gui, BoundingBox:+AlwaysOnTop +ToolWindow -Caption +E0x20
-    Gui, BoundingBox:Color, 123456
-    Gui, BoundingBox:+LastFound  ; Make the GUI window the last found window for use by the line below. (straght from documentation)
-    WinSet, TransColor, 123456 ; Makes that specific color transparent in the gui
-
-    ; Create the borders and show
-    Gui, BoundingBox:Add, Progress, x0 y0 w%BoxWidth% h2 BackgroundRed
-    Gui, BoundingBox:Add, Progress, x0 y0 w2 h%BoxHeight% BackgroundRed
-    Gui, BoundingBox:Add, Progress, x%BoxWidth% y0 w2 h%BoxHeight% BackgroundRed
-    Gui, BoundingBox:Add, Progress, x0 y%BoxHeight% w%BoxWidth% h2 BackgroundRed
-    Gui, BoundingBox:Show, x%X1% y%Y1% NoActivate
-    Sleep, 100
-
-    if (doPause) {
-        Pause
-    }
-
-    if GetKeyState("F4", "P") {
-        Pause
-    }
-
-    Gui, BoundingBox:Destroy
-}
-
-GetNeedle(Path) {
-    static NeedleBitmaps := Object()
-    if (NeedleBitmaps.HasKey(Path)) {
-        return NeedleBitmaps[Path]
-    } else {
-        pNeedle := Gdip_CreateBitmapFromFile(Path)
-        NeedleBitmaps[Path] := pNeedle
-        return pNeedle
-    }
-}
-
-MonthToDays(year, month) {
-    static DaysInMonths := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    days := 0
-    Loop, % month - 1 {
-        days += DaysInMonths[A_Index]
-    }
-    if (month > 2 && IsLeapYear(year))
-        days += 1
-    return days
-}
-
-IsLeapYear(year) {
-    return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0
-}
-
-ReadFile(filename, numbers := false) {
-    FileRead, content, %A_ScriptDir%\..\%filename%.txt
-
-    if (!content)
-        return false
-
-    values := []
-    for _, val in StrSplit(Trim(content), "`n") {
-        cleanVal := RegExReplace(val, "[^a-zA-Z0-9]") ; Remove non-alphanumeric characters
-        if (cleanVal != "")
-            values.Push(cleanVal)
-    }
-
-    return values.MaxIndex() ? values : false
-}
 
 ; ^e::
 ; msgbox ss
@@ -764,40 +522,46 @@ ReadFile(filename, numbers := false) {
 ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GPTestScript() {
-    global triggerTestNeeded
-    triggerTestNeeded := false
-    RemoveNonVipFriends()
+	global triggerTestNeeded
+	triggerTestNeeded := false
+	LogInfo("Starting GP Test Script")
+	RemoveNonVipFriends()
 }
 
 ; Automation script for removing Non-VIP firends.
 RemoveNonVipFriends() {
-    global GPTest, vipIdsURL, failSafe
-    failSafe := A_TickCount
-    failSafeTime := 0
-    ; Get us to the Social screen. Won't be super resilient but should be more consistent for most cases.
-    Loop {
-        adbClick(143, 518)
-        if(FindOrLoseImage(120, 500, 155, 530, , "Social", 0, failSafeTime))
-            break
-        Delay(5)
-        failSafeTime := (A_TickCount - failSafe) // 1000
-        CreateStatusMessage("In failsafe for Social. " . failSafeTime "/90 seconds")
-    }
-    FindImageAndClick(226, 100, 270, 135, , "Add", 38, 460, 500)
-    Delay(3)
+	global GPTest, vipIdsURL, failSafe
+	failSafe := A_TickCount
+	failSafeTime := 0
+	LogInfo("RemoveNonVipFriends called")
+	
+	; Get us to the Social screen. Won't be super resilient but should be more consistent for most cases.
+	Loop {
+		adbClick(143, 518)
+		if(FindOrLoseImage(120, 500, 155, 530, , "Social", 0, failSafeTime))
+			break
+		Delay(5)
+		failSafeTime := (A_TickCount - failSafe) // 1000
+		LogDebug("In failsafe for Social. " . failSafeTime "/90 seconds")
+	}
+	FindImageAndClick(226, 100, 270, 135, , "Add", 38, 460, 500)
+	Delay(3)
 
-    CreateStatusMessage("Downloading vip_ids.txt.",,,, false)
-    if (vipIdsURL != "" && !DownloadFile(vipIdsURL, "vip_ids.txt")) {
-        CreateStatusMessage("Failed to download vip_ids.txt. Aborting test...",,,, false)
-        return
-    }
+	CreateStatusMessage("Downloading vip_ids.txt.")
+	LogInfo("Downloading vip_ids.txt.")
+	if (vipIdsURL != "" && !DownloadFile(vipIdsURL, "vip_ids.txt", true)) {
+		CreateStatusMessage("Failed to download vip_ids.txt. Aborting test...")
+		LogError("Failed to download vip_ids.txt.")
+		return
+	}
 
-    includesIdsAndNames := false
-    vipFriendsArray :=  GetFriendAccountsFromFile(A_ScriptDir . "\..\vip_ids.txt", includesIdsAndNames)
-    if (!vipFriendsArray.MaxIndex()) {
-        CreateStatusMessage("No accounts found in vip_ids.txt. Aborting test...",,,, false)
-        return
-    }
+	includesIdsAndNames := false
+	vipFriendsArray :=  GetFriendAccountsFromFile(A_ScriptDir . "\..\vip_ids.txt", includesIdsAndNames)
+	if (!vipFriendsArray.MaxIndex()) {
+		CreateStatusMessage("No accounts found in vip_ids.txt. Aborting test...")
+		LogError("No accounts found in vip_ids.txt.")
+		return
+	}
 
     friendIndex := 0
     repeatFriendAccounts := 0
@@ -811,32 +575,37 @@ RemoveNonVipFriends() {
             parseFriendResult := ParseFriendInfo(friendCode, friendName, parseFriendCodeResult, parseFriendNameResult, includesIdsAndNames)
             friendAccount := new FriendAccount(friendCode, friendName)
 
-            ; Check if this is a repeat
-            if (IsRecentlyCheckedAccount(friendAccount, recentFriendAccounts)) {
-                repeatFriendAccounts++
+			; Check if this is a repeat
+			if (IsRecentlyCheckedAccount(friendAccount, recentFriendAccounts)) {
+				repeatFriendAccounts++
+			}
+			else if (parseFriendResult) {
+				repeatFriendAccounts := 0
+			}
+			if (repeatFriendAccounts > 2) {
+                CreateStatusMessage("End of list - parsed the same friend codes multiple times.")
+				LogInfo("End of list - parsed the same friend codes multiple times.")
+                Delay(5)
+                CreateStatusMessage("Ready to test.")
+				LogToDiscord("GP test ended, ready to test.", ,true)
+				adbClick(143, 507)
+				Delay(30)
+				CreateStatusMessage("")
+                return 
             }
-            else if (parseFriendResult) {
-                repeatFriendAccounts := 0
-            }
-            if (repeatFriendAccounts > 2) {
-                if (Debug)
-                    CreateStatusMessage("End of list - parsed the same friend codes multiple times.`nReady to test.")
-                else
-                    CreateStatusMessage("Ready to test.",,,, false)
-                adbClick(143, 507)
-                return
-            }
+            
             matchedFriend := ""
             isVipResult := IsFriendAccountInList(friendAccount, vipFriendsArray, matchedFriend)
             if (isVipResult || !parseFriendResult) {
                 ; If we couldn't parse the friend, skip removal
                 if (!parseFriendResult) {
-                    CreateStatusMessage("Couldn't parse friend. Skipping friend...`nParsed friend: " . friendAccount.ToString(),,,, false)
-                    LogToFile("Friend skipped: " . friendAccount.ToString() . ". Couldn't parse identifiers.", "GPTestLog.txt")
+                    CreateStatusMessage("Couldn't parse friend. Skipping friend...`nParsed friend: " . friendAccount.ToString())
+                    LogInfo("Friend skipped: " . friendAccount.ToString() . ". Couldn't parse identifiers.")
                 }
                 ; If it's a VIP friend, skip removal
                 if (isVipResult)
-                    CreateStatusMessage("Parsed friend: " . friendAccount.ToString() . "`nMatched VIP: " . matchedFriend.ToString() . "`nSkipping VIP...",,,, false)
+                    CreateStatusMessage("Parsed friend: " . friendAccount.ToString() . "`nMatched VIP: " . matchedFriend.ToString() . "`nSkipping VIP...")
+					LogInfo("Friend skipped: " . friendAccount.ToString() . ". Matched VIP: " . matchedFriend.ToString() . ".")
                 Sleep, 1500 ; Time to read
                 FindImageAndClick(226, 100, 270, 135, , "Add", 143, 507, 500)
                 Delay(2)
@@ -852,14 +621,13 @@ RemoveNonVipFriends() {
                     Delay(10)
                     adbSwipe(X . " " . Y1 . " " . X . " " . Y2 . " " . 300)
                     Sleep, 1000
-
                     friendIndex := 0
                 }
             }
             else {
                 ; If NOT a VIP remove the friend
-                CreateStatusMessage("Parsed friend: " . friendAccount.ToString() . "`nNo VIP match found.`nRemoving friend...",,,, false)
-                LogToFile("Friend removed: " . friendAccount.ToString() . ". No VIP match found.", "GPTestLog.txt")
+                CreateStatusMessage("Parsed friend: " . friendAccount.ToString() . "`nNo VIP match found.`nRemoving friend...")
+                LogInfo("Friend removed: " . friendAccount.ToString() . ". No VIP match found.")
                 Sleep, 1500 ; Time to read
                 FindImageAndClick(135, 355, 160, 385, , "Remove", 145, 407, 500)
                 FindImageAndClick(70, 395, 100, 420, , "Send2", 200, 372, 500)
@@ -867,12 +635,12 @@ RemoveNonVipFriends() {
                 FindImageAndClick(226, 100, 270, 135, , "Add", 143, 507, 500)
                 Delay(3)
             }
-        }
-        else {
-            ; If on social screen, we're stuck between friends, micro scroll
-            If (FindOrLoseImage(226, 100, 270, 135, , "Add", 0)) {
-                CreateStatusMessage("Stuck between friends. Tiny scroll and continue.")
-
+		}
+		else {
+			; If on social screen, we're stuck between friends, micro scroll
+			If (FindOrLoseImage(226, 100, 270, 135, , "Add", 0)) {
+				CreateStatusMessage("Stuck between friends. Tiny scroll and continue.")
+				LogInfo("Stuck between friends. Tiny scroll and continue.")
                 ; Very small vertical swipe up, to correct miss-swipe on the friend list.
                 ; The swipe is performed with a fixed X-coordinate, simulating a small vertical swipe.
                 X := 138
@@ -882,16 +650,16 @@ RemoveNonVipFriends() {
                 Delay(3)
                 adbSwipe(X . " " . Y1 . " " . X . " " . Y2 . " " . 200)
                 Sleep, 500
-            }
-            else { ; Handling for account not currently in use
-                FindImageAndClick(226, 100, 270, 135, , "Add", 143, 508, 500)
-                Delay(3)
-            }
-        }
-        if (!GPTest) {
-            Return
-        }
-    }
+			}
+			else { ; Handling for account not currently in use
+				FindImageAndClick(226, 100, 270, 135, , "Add", 143, 508, 500)
+				Delay(3)
+			}
+		}
+		if (!GPTest) {
+			Return
+		}
+	}
 }
 
 ; Attempts to extract a friend accounts's code and name from the screen, by taking screenshot and running OCR on specific regions.
@@ -1190,19 +958,46 @@ GetTextFromBitmap(pBitmap, charAllowList := "") {
     ; Returns:
     ;   (String) - The OCR-extracted text, with disallowed characters removed.
     ; -----------------------------------------------------------------------------
-    global ocrLanguage
-    ocrText := ""
-    ; OCR the bitmap directly
-    hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
-    pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
-    ocrText := ocr(pIRandomAccessStream, ocrLanguage)
-    ; Cleanup references
-    ; ObjRelease(pIRandomAccessStream) ; TODO: do I need this?
-    DeleteObject(hBitmapFriendCode)
-    ; Remove disallowed characters
-    if (charAllowList != "") {
-        allowedPattern := "[^" RegExEscape(charAllowList) "]"
-        ocrText := RegExReplace(ocrText, allowedPattern)
+	global ocrLanguage, winTitle, tesseractPath
+	ocrText := ""
+
+	if FileExist(tesseractPath) {
+		; ~~~~~~~~~~~~~~~~~~~~~~~~~
+		; ~~~ Use Tesseract OCR ~~~
+		; ~~~~~~~~~~~~~~~~~~~~~~~~~
+		; Save to file
+		filepath := GetTempDirectory() . "\" . winTitle . "_" . filename . ".png"
+		saveResult := Gdip_SaveBitmapToFile(pBitmap, filepath, 100)
+		if (saveResult != 0) {
+			CreateStatusMessage("Failed to save " . filepath . " screenshot.`nError code: " . saveResult)
+			return False
+		}
+		; OCR the file directly
+		command := """" . tesseractPath . """ """ . filepath . """ -"
+		if (charAllowList != "") {
+			command := command . " -c tessedit_char_whitelist=" . charAllowList
+		}
+		command := command . " --oem 3 --psm 7"
+		ocrText := CmdRet(command)
+	}
+	else {
+		; ~~~~~~~~~~~~~~~~~~~~~~~
+		; ~~~ Use Windows OCR ~~~
+		; ~~~~~~~~~~~~~~~~~~~~~~~
+	    global ocrLanguage
+	    ocrText := ""
+    	; OCR the bitmap directly
+	    hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
+	    pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+	    ocrText := ocr(pIRandomAccessStream, ocrLanguage)
+    	; Cleanup references
+    	; ObjRelease(pIRandomAccessStream) ; TODO: do I need this?
+	    DeleteObject(hBitmapFriendCode)
+    	; Remove disallowed characters
+	    if (charAllowList != "") {
+	        allowedPattern := "[^" RegExEscape(charAllowList) "]"
+	        ocrText := RegExReplace(ocrText, allowedPattern)
+		}
     }
 
     return Trim(ocrText, " `t`r`n")
@@ -1230,33 +1025,4 @@ GetTempDirectory() {
     if !FileExist(tempDir)
         FileCreateDir, %tempDir%
     return tempDir
-}
-
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; ~~~ Copied from other Arturo scripts ~~~
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Delay(n) {
-    global Delay
-    msTime := Delay * n
-    Sleep, msTime
-}
-
-DownloadFile(url, filename) {
-    url := url  ; Change to your hosted .txt URL "https://pastebin.com/raw/vYxsiqSs"
-    localPath = %A_ScriptDir%\..\%filename% ; Change to the folder you want to save the file
-    errored := false
-    try {
-        whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-        whr.Open("GET", url, true)
-        whr.Send()
-        whr.WaitForResponse()
-        contents := whr.ResponseText
-    } catch {
-        errored := true
-    }
-    if(!errored) {
-        FileDelete, %localPath%
-        FileAppend, %contents%, %localPath%
-    }
-    return !errored
 }

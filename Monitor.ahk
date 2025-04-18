@@ -1,5 +1,6 @@
-#Include %A_ScriptDir%\Scripts\Include\Logging.ahk
-
+#Include %A_ScriptDir%\Scripts\Include\Logger_Module.ahk
+#Include %A_ScriptDir%\Scripts\Include\Utils.ahk
+#Include %A_ScriptDir%\Scripts\Include\Gdip_All.ahk
 #SingleInstance, force
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
@@ -38,7 +39,7 @@ Loop {
         {
             ; msgbox, Killing Instance %instanceNum%! Last Run Completed %secondsSinceLastEnd% Seconds Ago
             msg := "Killing Instance " . instanceNum . "! Last Run Completed " . secondsSinceLastEnd . " Seconds Ago"
-            LogToFile(msg, "Monitor.txt")
+            LogMonitor(msg)
 
             scriptName := instanceNum . ".ahk"
 
@@ -185,11 +186,6 @@ getMumuInstanceNumFromPlayerName(scriptName := "") {
             }
         }
     }
-}
-
-; Temporary function to avoid an error in Logging.ahk
-ReadFile(filename) {
-    return false
 }
 
 ; Function to run as a NON-adminstrator, since MuMu has issues if run as Administrator
