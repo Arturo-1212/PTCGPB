@@ -5,6 +5,7 @@
 
 ; BallCity - 2025.20.25 - Add OCR library for Username if Inject is on
 #Include *i %A_ScriptDir%\Include\OCR.ahk
+#Include *i %A_ScriptDir%\Include\Gdip_Extra.ahk
 
 #SingleInstance on
 SetMouseDelay, -1
@@ -2137,33 +2138,45 @@ ReadFile(filename, numbers := false) {
 }
 
 Screenshot(fileType := "Valid", subDir := "", ByRef fileName := "") {
-    global packs
+    global adbShell, adbPath, packs
     SetWorkingDir %A_ScriptDir%  ; Ensures the working directory is the script's directory
 
-    ; Define folder and file paths
-    fileDir := A_ScriptDir "\..\Screenshots"
-    if (subDir) {
-        fileDir .= "\" . subDir
+    ; For PACKSTATS, use temp directory instead of Screenshots folder
+    if (filename = "PACKSTATS") {
+        ; Create temp directory if it doesn't exist
+        tempDir := A_ScriptDir . "\temp"
+        if !FileExist(tempDir)
+            FileCreateDir, %tempDir%
+        ; Use temp file path
+        screenshotFile := tempDir . "\packstats_temp.png"
+    } else {
+        ; Normal screenshots go to Screenshots folder as before
+        screenshotsDir := A_ScriptDir "\..\Screenshots"
+        if !FileExist(screenshotsDir)
+            FileCreateDir, %screenshotsDir%
+        screenshotFile := screenshotsDir "\" . A_Now . "_" . winTitle . "_" . filename . "_" . packs . "_packs.png"
     }
-    if !FileExist(fileDir)
-        FileCreateDir, fileDir
-
-    ; File path for saving the screenshot locally
-    fileName := A_Now . "_" . winTitle . "_" . fileType . "_" . packs . "_packs.png"
-    filePath := fileDir "\" . fileName
 
     pBitmapW := from_window(WinExist(winTitle))
     pBitmap := Gdip_CloneBitmapArea(pBitmapW, 18, 175, 240, 227)
     ;scale 100%
     if (scaleParam = 287) {
-    pBitmap := Gdip_CloneBitmapArea(pBitmapW, 17, 168, 245, 230)
+        pBitmap := Gdip_CloneBitmapArea(pBitmapW, 17, 168, 245, 230)
     }
     Gdip_DisposeImage(pBitmapW)
-    Gdip_SaveBitmapToFile(pBitmap, filePath)
-    Gdip_DisposeImage(pBitmap)
 
-    return filePath
+    Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
+
+    ; Don't dispose pBitmap if it's a PACKSTATS screenshot
+    if (filename != "PACKSTATS") {
+        Gdip_DisposeImage(pBitmap)
+        return screenshotFile
+    }
+    
+    ; For PACKSTATS, return both values and delete temp file after OCR is done
+    return {filepath: screenshotFile, bitmap: pBitmap, deleteAfterUse: true}
 }
+
 
 ; Pause Script
 PauseScript:
@@ -3398,3 +3411,204 @@ getChangeDateTime() {
     Screenshot()
 return
 */
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Find Card Count and Relevant Functions
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+FindPackStats() {
+    global adbShell, scriptName, ocrLanguage, loadDir
+
+    ; Click for hamburger menu and wait for profile
+    Loop {
+        adbClick(240, 499)
+        if(FindOrLoseImage(230, 120, 260, 150, , "UserProfile", 0)) {
+            break
+        } else {
+            clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
+            if(clickButton) {
+                StringSplit, pos, clickButton, `,  ; Split at ", "
+                if (scaleParam = 287) {
+                    pos2 += 5
+                }
+                adbClick(pos1, pos2)
+			}
+		}
+        Delay(1)
+    }
+
+    ; Open profile/stats page and wait
+    Loop {
+        adbClick(210, 140)
+        if(FindOrLoseImage(203, 272, 237, 300, , "Profile", 0)) {
+            break
+        }
+        Delay(1)
+    }
+
+    ; Swipe up 3 times to get to pack count
+    Loop, 3 {
+           adbSwipe("266 770 266 355 300")
+        Delay(1)
+    }
+
+    ; Take screenshot and prepare for OCR
+    Sleep, 1000
+    fcScreenshot := Screenshot("PACKSTATS")
+    
+    debugInfo := ""
+    packValue := 0
+    maxRetries := 3
+    currentTry := 1
+    
+    while (currentTry <= maxRetries) {
+        try {
+            if(IsFunc("ocr")) {
+                ; Try different scale factors for better OCR accuracy
+                scaleFactors := [200, 300, 400, 500]
+                
+                for index, scaleFactor in scaleFactors {
+                    ; Use the entire screenshot for OCR
+                    pBitmap := CropAndFormatForOcr(fcScreenshot.filepath, 0, 0, 277, 537, scaleFactor)
+                    
+                    ; Extract text using OCR with allowed characters
+                    ocrText := GetTextFromBitmap(pBitmap, "0123456789")
+                    
+                    ; Clean up bitmap
+                    Gdip_DisposeImage(pBitmap)
+                    
+                    ; Look for numbers that are likely to be card counts (greater than 15)
+                    foundNumbers := []
+                    pos := 1
+                    while pos := RegExMatch(ocrText, "O)(\d{2,3})", match, pos) {
+                        number := match.1
+                        if (number >= 15)  ; Only consider numbers that could be realistic card counts
+                            foundNumbers.Push(number)
+                        pos += match.len
+                    }
+
+                    ; Find valid numbers
+                    if (foundNumbers.Length() > 0) {
+                        ; Get the largest number found
+                        maxNumber := 0
+                        for i, num in foundNumbers {
+                            if (num > maxNumber)
+                                maxNumber := num
+                        }
+
+                        ; Calculate pack count
+                        packValue := Floor(maxNumber / 5)
+                        if (packValue > 100) {
+                            ; If pack count is too high, get a new screenshot and retry
+                            if (fcScreenshot.deleteAfterUse && FileExist(fcScreenshot.filepath))
+                                FileDelete, % fcScreenshot.filepath
+                            Sleep, 1000  ; Wait a bit before new screenshot
+                            fcScreenshot := Screenshot("PACKSTATS")
+                            break  ; Break inner loop to try new screenshot with all scale factors
+                        }
+                        if (packValue > 0)  ; If we got a valid value under 100, break out
+                            break 2
+                    }
+                }
+            } else {
+                break
+            }
+        } catch e {
+            LogToFile("Failed OCR attempt " . currentTry . ": " . e.message, "BC.txt")
+        }
+        
+        currentTry++
+        if (currentTry <= maxRetries)
+            Sleep, 1000
+    }
+
+    ; Update XML filename if needed
+    if (loadDir && FileExist(loadDir) && packValue && packValue <= 100) {
+        SplitPath, loadDir, currentFileName, fileDir
+        
+        ; Extract timestamp and instance
+        timestamp := RegExMatch(currentFileName, "^(\d+)_", timestampMatch) ? timestampMatch1 : ""
+        instance := RegExMatch(currentFileName, "_(\d+)", instanceMatch) ? instanceMatch1 : ""
+        
+        if (timestamp && instance) {
+            ; Create new filename with pack count
+            newFileName := timestamp . "_" . instance . "_" . packValue . "P.xml"
+            newFilePath := fileDir . "\" . newFileName
+            
+            ; Rename the file
+            FileMove, %loadDir%, %newFilePath%
+            loadDir := newFilePath
+        }
+    }
+
+	if (fcScreenshot.deleteAfterUse && FileExist(fcScreenshot.filepath))
+		FileDelete, % fcScreenshot.filepath
+
+    if(stopToggle) {
+        ExitApp
+    }
+    return packValue
+}
+
+; Attempts to extract and validate text from a specified region of a screenshot using OCR.
+ParseFriendInfoLoop(screenshotFile, x, y, w, h, allowedChars, validPattern, ByRef output) {
+    success := False
+    blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
+    Loop, % blowUp.Length() {
+        ; Get the formatted pBitmap
+        pBitmap := CropAndFormatForOcr(screenshotFile, x, y, w, h, blowUp[A_Index])
+        ; Run OCR
+        output := GetTextFromBitmap(pBitmap, allowedChars)
+        ; Validate result
+        if (RegExMatch(output, validPattern)) {
+            success := True
+            break
+        }
+    }
+    return success
+}
+
+; Crops an image, scales it up, converts it to grayscale, and enhances contrast to improve OCR accuracy.
+CropAndFormatForOcr(inputFile, x := 0, y := 0, width := 200, height := 200, scaleUpPercent := 200) {
+    ; Get bitmap from file
+    pBitmapOrignal := Gdip_CreateBitmapFromFile(inputFile)
+    ; Crop to region, Scale up the image, Convert to greyscale, Increase contrast
+    pBitmapFormatted := Gdip_CropResizeGreyscaleContrast(pBitmapOrignal, x, y, width, height, scaleUpPercent, 25)
+    ; Cleanup references
+    Gdip_DisposeImage(pBitmapOrignal)
+    return pBitmapFormatted
+}
+
+; Extracts text from a bitmap using OCR. Converts the bitmap to a format usable by Windows OCR, performs OCR, and optionally removes characters not in the allowed character list.
+GetTextFromBitmap(pBitmap, charAllowList := "") {
+    global ocrLanguage
+    ocrText := ""
+    ; OCR the bitmap directly
+    hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
+    pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+    ocrText := ocr(pIRandomAccessStream, ocrLanguage)
+    ; Cleanup references
+    DeleteObject(hBitmapFriendCode)
+    ; Remove disallowed characters
+    if (charAllowList != "") {
+        allowedPattern := "[^" RegExEscape(charAllowList) "]"
+        ocrText := RegExReplace(ocrText, allowedPattern)
+    }
+
+    return Trim(ocrText, " `t`r`n")
+}
+
+; Escapes special characters in a string for use in a regular expression. 
+RegExEscape(str) {
+    return RegExReplace(str, "([-[\]{}()*+?.,\^$|#\s])", "\$1")
+}
+
+; Retrieves the path to the temporary directory for the script. Creates it if it doesn't exist.
+GetTempDirectory() {
+    tempDir := A_ScriptDir . "\temp"
+    if !FileExist(tempDir)
+        FileCreateDir, %tempDir%
+    return tempDir
+}
+
