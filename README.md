@@ -1,3 +1,14 @@
+Sorry I haven't updated this repo. I've been busy, but the community has kept up with updates and it's still alive and working. 
+
+Please see below for the forked community project and resources: 
+- Repo: https://github.com/mixman208/PTCGPB
+- Latest releases: https://github.com/mixman208/PTCGPB/releases
+- Documentation: https://mixman208.github.io/PTCGPB/
+- Video guide: https://youtu.be/4TvSHc8VAjo
+- Discord is still the same: https://discord.gg/C9Nyf7P4sT
+
+Thanks to everyone in the community that has kept up with the project!
+
 # **License Change Notice**
 The original intention of this project was not for it to be used for paid services even those disguised as 'donations.'
 
