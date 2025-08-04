@@ -2,10 +2,10 @@ Sorry I haven't updated this repo. I've been busy, but the community has kept up
 
 Please see below for the forked community project and resources:
 
-Repo: https://github.com/kevnITG/PTCGPB
-Latest releases: https://github.com/kevnITG/PTCGPB/releases
-Documentation: https://mixman208.github.io/PTCGPB/
-Video guide: https://youtu.be/4TvSHc8VAjo
+- Repo: https://github.com/kevnITG/PTCGPB
+- Latest releases: https://github.com/kevnITG/PTCGPB/releases
+- Documentation: https://mixman208.github.io/PTCGPB/
+- Video guide: https://youtu.be/4TvSHc8VAjo
 
 Thanks to everyone in the community that has kept up with the project!
 
