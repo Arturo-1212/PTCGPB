@@ -677,10 +677,7 @@ from_window(ByRef image) {
 ~+F9::ToggleTestScript() ; hoytdj Add
 
 ToggleStatusMessages() {
-    if(showStatus)
-        showStatus := False
-    else
-        showStatus := True
+    showStatus := !showStatus
 }
 
 bboxAndPause(X1, Y1, X2, Y2, doPause := False) {
@@ -960,7 +957,6 @@ ParseFriendInfoLoop(screenshotFile, x, y, w, h, allowedChars, validPattern, ByRe
     ; Returns:
     ;   (Boolean) - True if valid text was found and matched the pattern, false otherwise.
     ; ------------------------------------------------------------------------------
-    success := False
     blowUp := [200, 500, 1000, 2000, 100, 250, 300, 350, 400, 450, 550, 600, 700, 800, 900]
     Loop, % blowUp.Length() {
         ; Get the formatted pBitmap
@@ -968,12 +964,10 @@ ParseFriendInfoLoop(screenshotFile, x, y, w, h, allowedChars, validPattern, ByRe
         ; Run OCR
         output := GetTextFromBitmap(pBitmap, allowedChars)
         ; Validate result
-        if (RegExMatch(output, validPattern)) {
-            success := True
-            break
-        }
+        if (RegExMatch(output, validPattern))
+            return True
     }
-    return success
+    return False
 }
 
 ; FriendAccount class that holds information about a friend account, including the account's code (ID) and name.
